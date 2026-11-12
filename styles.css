@@ -231,3 +231,10 @@ p{margin:0}
 @media (prefers-reduced-motion:reduce){.sticky-cta{transition:none}.q-bar span{transition:none}}
 .q-panel>.btn,.r-actions .btn{align-self:flex-start}
 @media (max-width:900px){.q-panel>.btn{align-self:stretch}}
+
+.pullquote{margin:0;display:flex;flex-direction:column;gap:14px;align-items:center;text-align:center}
+.pullquote blockquote{margin:0}
+.pullquote figcaption{font-size:15px;letter-spacing:.06em;color:var(--gold-text);font-weight:700}
+.pullquote figcaption cite{font-style:italic;font-weight:600}
+.quote-after{font-size:22px;color:var(--navy);margin:8px 0 0;font-weight:600}
+@media (max-width:900px){.quote-after{font-size:19px}}
