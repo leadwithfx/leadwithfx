@@ -213,7 +213,7 @@
     <h2>The path exists. The time is now.</h2>
     <p>Book a free 30-minute intro call and leave with your next step. No pitch, just an honest conversation.</p>
     <div class="calendly-card">
-      <div class="calendly-inline-widget" data-url="https://calendly.com/freddie-rx?hide_gdpr_banner=1" style="min-width:320px;height:700px;"></div>
+      <div class="calendly-inline-widget" data-url="https://calendly.com/freddie-rx?hide_gdpr_banner=1" style="min-width:320px;height:560px;"></div>
       <script type="text/javascript" src="https://assets.calendly.com/assets/external/widget.js" async></script>
     </div>
     <p class="small">Prefer a new tab? <a class="alt-link" href="https://calendly.com/freddie-rx">Open the booking page</a>. Online worldwide, or in person in Sydney.</p>
@@ -235,9 +235,26 @@
       <a href="mailto:leadwithfx@gmail.com">leadwithfx@gmail.com</a>
       <a href="https://www.linkedin.com/in/freddiexavier">LinkedIn</a>
     </nav>
-    <div class="footer-note">Online worldwide | In person in Sydney</div>
+    <div class="footer-note">Online worldwide | In person in Sydney<span id="visitors" class="visitors" hidden></span></div>
   </div>
 </footer>
 
+<script>
+/* Unique-visitor counter from GoatCounter. Shows only once the count reaches MIN_TO_SHOW (set to 0 to always show).
+   Needs GoatCounter > Settings > "Allow adding visitor counts on your website" ticked. */
+(function(){
+  var MIN_TO_SHOW=100;
+  fetch("https://leadwithfx.goatcounter.com/counter/TOTAL.json")
+    .then(function(r){return r.ok?r.json():null})
+    .then(function(d){
+      if(!d)return;
+      var n=parseInt(String(d.count_unique).replace(/[^0-9]/g,""),10);
+      if(isNaN(n)||n<MIN_TO_SHOW)return;
+      var el=document.getElementById("visitors");
+      el.textContent=" | "+n.toLocaleString("en-AU")+" unique visitors";
+      el.hidden=false;
+    }).catch(function(){});
+})();
+</script>
 </body>
 </html>
