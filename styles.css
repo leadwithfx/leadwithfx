@@ -290,3 +290,7 @@ p{margin:0}
 .about-list b{color:var(--navy)}
 
 .creds.six .cred{flex:1 1 30%}
+
+.q-via{margin:18px 0 0;font-size:16px;line-height:1.55;color:var(--on-navy)}
+.q-via a{color:var(--gold);font-weight:700;text-decoration:underline}
+.quiz .btn-outline{background:transparent;cursor:pointer}

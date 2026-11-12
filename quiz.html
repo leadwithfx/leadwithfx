@@ -54,6 +54,7 @@
   <p id="r-body" class="q-lead"></p>
   <div class="r-box"><strong>Your next step</strong><p id="r-step"></p></div>
   <div class="r-actions"><a class="btn btn-gold" href="https://calendly.com/freddie-rx" target="_blank" rel="noopener" id="r-book">Book a free intro call</a><button id="q-again" class="btn btn-outline" type="button">Retake the check</button></div>
+  <p class="q-via">Want a first look at your strengths before we talk? Take the free <a href="https://www.viacharacter.org/" target="_blank" rel="noopener" id="r-via">VIA Character Strengths Survey</a> (about 15 minutes, run by the VIA Institute, not by me), then bring your top strengths to our intro call.</p>
   <p class="q-fine">This is a reflection tool, not an assessment or a diagnosis.</p>
 </div>
 </div></main>
@@ -122,6 +123,7 @@ function finish(){
 }
 $("q-start").addEventListener("click",function(){i=0;ans=[];show(run);render();ping("quiz-start")});
 $("q-again").addEventListener("click",function(){i=0;ans=[];show(intro)});
+$("r-via").addEventListener("click",function(){ping("quiz-via-click")});
 $("r-book").addEventListener("click",function(){ping("quiz-book-click")});
 })();
 </script>
