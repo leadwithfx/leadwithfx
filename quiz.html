@@ -35,12 +35,12 @@
 <div id="quiz-intro" class="q-panel">
   <div class="rule"></div>
   <h1>Where are you on your path?</h1>
-  <p class="q-lead">Ten quick questions. Three minutes. You'll see where you are right now and what your next step could be. Your answers stay in your browser.</p>
+  <p class="q-lead" id="q-lead">Ten quick questions. Three minutes. You'll see where you are right now and what your next step could be. Your answers stay in your browser.</p>
   <button id="q-start" class="btn btn-gold" type="button">Start the Clarity Check</button>
 </div>
 
 <div id="quiz-run" class="q-panel" hidden>
-  <div class="q-top"><span id="q-count" class="q-count">Question 1 of 10</span>
+  <div class="q-top"><span id="q-count" class="q-count">About you</span>
     <div class="q-bar" role="progressbar" aria-label="Progress" aria-valuemin="0" aria-valuemax="10" aria-valuenow="0"><span id="q-fill"></span></div></div>
   <form id="q-form" novalidate>
     <fieldset><legend id="q-text" tabindex="-1"></legend><div id="q-options" class="q-options"></div></fieldset>
@@ -53,6 +53,7 @@
   <h2 id="r-title" tabindex="-1"></h2>
   <p id="r-body" class="q-lead"></p>
   <div class="r-box"><strong>Your next step</strong><p id="r-step"></p></div>
+  <div id="r-ai" class="r-box r-ai" hidden><strong>A closer look at your answers</strong><p id="r-ai-text"></p><p class="r-ai-note">Written by AI from your answers only. It is not from Freddie, and it is not advice. Your answers are sent without your name or any contact details.</p></div>
   <div class="r-actions"><a class="btn btn-gold" href="https://calendly.com/freddie-rx" target="_blank" rel="noopener" id="r-book">Book a free intro call</a><button id="q-again" class="btn btn-outline" type="button">Retake the check</button></div>
   <p class="q-via">Want a first look at your strengths before we talk? Take the free <a href="https://www.viacharacter.org/account/register" target="_blank" rel="noopener" id="r-via">VIA Character Strengths Survey</a> (about 15 minutes, run by the VIA Institute, not by me), then bring your top strengths to our intro call.</p>
   <p class="q-fine">This is a reflection tool, not an assessment or a diagnosis.</p>
@@ -67,7 +68,9 @@
 
 <script>
 (function(){
+var AI_ENDPOINT=""; /* set to your deployed Worker URL to switch on the AI summary */
 var Q=[
+{q:"Which best describes you?",o:["Tech leader or manager","Career changer","Early-career professional","Something else"],profile:1},
 {q:"How clear are you on your next role or move?",o:["I have no real idea","A few options, but nothing feels right","I have a direction, but I'm not sure it's the right one","I know exactly what I want next"]},
 {q:"When you face an important career decision, you usually…",o:["Put it off","Go round in circles","Weigh it up, then decide with some doubt","Decide with confidence and act"]},
 {q:"How well do the people who matter know the value you bring?",o:["Hardly at all","Some of them","Most of them, but not the key decision makers","Clearly, including the key decision makers"]},
@@ -87,13 +90,14 @@ var R=[
 var $=function(i){return document.getElementById(i)};
 var intro=$("quiz-intro"),run=$("quiz-run"),res=$("quiz-result"),form=$("q-form"),opts=$("q-options"),nextB=$("q-next"),back=$("q-back");
 var i=0,ans=[];
+if(AI_ENDPOINT){$("q-lead").textContent="Ten quick questions. Three minutes. You'll see where you are right now and what your next step could be. Your answers aren't stored. At the end they're sent, without your name or any contact details, to an AI service that writes a short reflection for you.";}
 function show(el){[intro,run,res].forEach(function(x){x.hidden=x!==el})}
 function ping(name){try{if(window.goatcounter&&window.goatcounter.count)window.goatcounter.count({path:name,title:name,event:true})}catch(e){}}
 function render(){
   var q=Q[i];
-  $("q-count").textContent="Question "+(i+1)+" of "+Q.length;
+  $("q-count").textContent=q.profile?"About you":"Question "+i+" of "+(Q.length-1);
   $("q-fill").style.width=((i)/Q.length*100)+"%";
-  var pb=document.querySelector(".q-bar");pb.setAttribute("aria-valuenow",i);
+  var pb=document.querySelector(".q-bar");pb.setAttribute("aria-valuenow",i);pb.setAttribute("aria-valuemax",Q.length);
   $("q-text").textContent=q.q;
   opts.innerHTML="";
   q.o.forEach(function(t,k){
@@ -114,12 +118,24 @@ form.addEventListener("submit",function(e){
   if(i<Q.length-1){i++;render()}else{finish()}
 });
 back.addEventListener("click",function(){if(i>0){i--;render()}});
+function aiSummary(){
+  var box=$("r-ai"),txt=$("r-ai-text");
+  box.hidden=true;txt.textContent="";
+  if(!AI_ENDPOINT||!window.fetch)return;
+  box.hidden=false;txt.textContent="Writing a short reflection from your answers\u2026";
+  var ctrl=window.AbortController?new AbortController():null,t=setTimeout(function(){if(ctrl)ctrl.abort()},15000);
+  fetch(AI_ENDPOINT,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({a:ans}),signal:ctrl?ctrl.signal:undefined})
+   .then(function(r){return r.ok?r.json():Promise.reject()})
+   .then(function(d){clearTimeout(t);if(d&&typeof d.summary==="string"&&d.summary.length>20&&d.summary.length<1500){txt.textContent=d.summary;ping("quiz-ai-summary-shown")}else{box.hidden=true}})
+   .catch(function(){clearTimeout(t);box.hidden=true});
+}
 function finish(){
-  var s=ans.reduce(function(a,b){return a+b},0),r=R[R.length-1];
+  var s=ans.slice(1).reduce(function(a,b){return a+b},0),r=R[R.length-1];
   for(var k=0;k<R.length;k++){if(s<=R[k].max){r=R[k];break}}
   $("r-eyebrow").textContent=r.eyebrow;$("r-title").textContent=r.title;$("r-body").textContent=r.body;$("r-step").textContent=r.step;
   show(res);$("r-title").focus();window.scrollTo({top:0,behavior:"smooth"});
   ping("quiz-complete-"+r.title.toLowerCase().replace(/\s+/g,"-"));
+  aiSummary();
 }
 $("q-start").addEventListener("click",function(){i=0;ans=[];show(run);render();ping("quiz-start")});
 $("q-again").addEventListener("click",function(){i=0;ans=[];show(intro)});

@@ -304,3 +304,8 @@ p{margin:0}
 .post-card .post-meta{margin-bottom:6px}
 .post-meta{font-size:14px;color:var(--gold-text);font-weight:700;letter-spacing:.04em;margin:0 0 10px}
 .posts-empty{background:var(--sand);border-radius:14px;padding:22px 26px}
+
+.r-ai{margin-top:16px;border-left:5px solid var(--gold)}
+.r-ai p{margin:8px 0 0}
+.r-ai .r-ai-note{font-size:13px;color:var(--ink-soft);opacity:.85}
+#r-ai-text{white-space:pre-line}
