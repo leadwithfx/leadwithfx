@@ -46,7 +46,7 @@ p{margin:0}
 /* Hero */
 .hero{background:var(--navy);color:#fff;position:relative;overflow:hidden}
 .hero::before{content:"";position:absolute;inset:0;background:url(hero-bg.svg) center/cover no-repeat;opacity:.16;pointer-events:none}
-.hero-inner{position:relative;padding-top:76px;padding-bottom:84px;display:flex;flex-direction:column;gap:24px;align-items:flex-start}
+.hero-inner{position:relative;padding-top:44px;padding-bottom:52px;display:flex;flex-direction:column;gap:20px;align-items:flex-start}
 .hero h1{font-size:52px;line-height:1.08;max-width:760px}
 .hero-sub{font-size:21px;line-height:1.5;max-width:680px;color:var(--on-navy)}
 
@@ -159,3 +159,12 @@ p{margin:0}
   .hero h1{font-size:clamp(30px,4.2vw,52px);max-width:none;white-space:nowrap}
   .hero-sub{font-size:clamp(14px,1.7vw,21px);max-width:none;white-space:nowrap}
 }
+
+.diff{background:var(--sand);padding:88px 0}
+.diff .section-title{margin-bottom:40px}
+.diff-grid{display:flex;flex-wrap:wrap;gap:24px}
+.diff-card{flex:1 1 260px;min-width:0;background:#fff;border:1px solid var(--line);border-radius:16px;padding:32px;display:flex;flex-direction:column;gap:10px}
+.diff-card h3{font-size:28px;color:var(--navy)}
+.diff-card p{font-size:17px;line-height:1.6;color:var(--ink-soft);margin:0}
+.diff-main{border-top:6px solid var(--gold)}
+@media (max-width:900px){.diff{padding:64px 0}}
