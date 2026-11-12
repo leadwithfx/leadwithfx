@@ -288,3 +288,5 @@ p{margin:0}
 /* about list */
 .about-list{margin:0 0 16px;padding-left:20px;display:flex;flex-direction:column;gap:6px;font-size:17px;line-height:1.55;color:var(--ink-soft)}
 .about-list b{color:var(--navy)}
+
+.creds.six .cred{flex:1 1 30%}
