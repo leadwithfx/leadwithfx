@@ -149,3 +149,6 @@ p{margin:0}
 @media (max-width:900px){.faq-inner{padding-top:64px;padding-bottom:64px}.faq summary{font-size:16px}}
 
 .faq-link{color:var(--navy);text-decoration:underline;text-decoration-color:#C9A227;text-underline-offset:3px;font-weight:600}
+
+.step-top{display:flex;align-items:center;justify-content:space-between}
+.step-icon{font-size:36px;line-height:1}
