@@ -252,3 +252,35 @@ p{margin:0}
 .quote-after{position:relative;margin:14px 0 0;padding-top:16px;font-family:'Fraunces',Georgia,serif;font-weight:500;font-size:26px;line-height:1.2;color:var(--navy)}
 .quote-after::before{content:"";position:absolute;top:0;left:50%;width:48px;height:3px;margin-left:-24px;background:var(--gold)}
 @media (max-width:900px){.quote-after{font-size:22px;margin-top:10px;padding-top:14px}}
+
+/* compact spacing pass */
+.story-inner{padding-top:56px;padding-bottom:56px;gap:40px}
+.coaching{padding:60px 0 56px}
+.method,.about,.proof{padding:56px 0}
+.diff{padding:52px 0}
+.faq-inner{padding-top:56px;padding-bottom:56px}
+.cta-inner{padding-top:64px;padding-bottom:64px;gap:20px}
+.teaser{padding:36px 0}
+.section-title{font-size:40px;margin-bottom:28px}
+.diff .section-title{margin-bottom:26px}
+.card{padding:32px 32px;gap:12px}
+.meet{margin-top:22px;gap:16px}
+.meet-card{padding:20px 26px}
+.about-inner{gap:40px;margin-bottom:32px}
+.creds{margin-top:16px;gap:16px}
+.cred{padding:22px}
+.quote{padding:26px}
+.diff-card{padding:24px}
+.faq summary{padding:16px 0}
+.faq details p{padding:0 0 16px}
+.footer-inner{padding-top:24px;padding-bottom:24px}
+@media (max-width:900px){
+  .story-inner{padding-top:40px;padding-bottom:40px;gap:24px}
+  .coaching,.method,.about,.proof{padding-top:40px;padding-bottom:40px}
+  .diff{padding:40px 0}
+  .faq-inner{padding-top:40px;padding-bottom:40px}
+  .cta-inner{padding-top:48px;padding-bottom:48px}
+  .section-title,.story-heading,.cta h2{font-size:30px}
+  .section-title{margin-bottom:22px}
+  .card{padding:26px 20px}
+}
