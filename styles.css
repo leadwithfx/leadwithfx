@@ -1,6 +1,6 @@
 :root{
-  --navy:#010F27;
-  --navy-deep:#000A1C;
+  --navy:#12294D;
+  --navy-deep:#0C1E3A;
   --gold:#C9A227;
   --gold-text:#8A6D12;
   --ivory:#FAF8F3;
@@ -45,7 +45,7 @@ p{margin:0}
 
 /* Hero */
 .hero{background:var(--navy);color:#fff;position:relative;overflow:hidden}
-.hero::before{content:"";position:absolute;inset:0;background:url(hero-bg.svg) center/cover no-repeat;opacity:.22;pointer-events:none}
+.hero::before{content:"";position:absolute;inset:0;background:url(hero-bg.svg) center/cover no-repeat;opacity:.16;pointer-events:none}
 .hero-inner{position:relative;padding-top:76px;padding-bottom:84px;display:flex;flex-direction:column;gap:24px;align-items:flex-start}
 .hero h1{font-size:52px;line-height:1.08;max-width:760px}
 .hero-sub{font-size:21px;line-height:1.5;max-width:680px;color:var(--on-navy)}
