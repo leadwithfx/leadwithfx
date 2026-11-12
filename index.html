@@ -240,6 +240,17 @@
 </footer>
 
 <script>
+(function(){
+  document.documentElement.classList.add("js");
+  var sel=".statement .wrap>*,.story .wrap>*,.card,.meet-card,.diff-card,.step,.about-text,.headshot,.cred,.faq-list details,.testimonial,.proof .wrap>*";
+  var els=[].slice.call(document.querySelectorAll(sel));
+  els.forEach(function(el,i){el.classList.add("reveal");var sib=el.parentNode?[].indexOf.call(el.parentNode.children,el):0;el.style.setProperty("--d",(Math.min(sib,4)*0.12)+"s")});
+  if(!("IntersectionObserver" in window)){els.forEach(function(e){e.classList.add("in")});return}
+  var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add("in");io.unobserve(e.target)}})},{threshold:.12,rootMargin:"0px 0px -40px 0px"});
+  els.forEach(function(e){io.observe(e)});
+})();
+</script>
+<script>
 /* Unique-visitor counter from GoatCounter. Shows only once the count reaches MIN_TO_SHOW (set to 0 to always show).
    Needs GoatCounter > Settings > "Allow adding visitor counts on your website" ticked. */
 (function(){

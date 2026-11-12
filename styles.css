@@ -80,7 +80,7 @@ p{margin:0}
 /* Method */
 .method{background:var(--navy);color:#fff;padding:96px 0}
 .steps{display:flex;flex-wrap:wrap;gap:40px}
-.step{flex:1 1 260px;min-width:0;border-top:3px solid var(--gold);padding-top:24px;display:flex;flex-direction:column;gap:12px}
+.step{flex:1 1 260px;min-width:0;position:relative;padding-top:27px;display:flex;flex-direction:column;gap:12px}
 .num{font-size:14px;font-weight:800;letter-spacing:.14em;color:var(--gold)}
 .step h3{font-size:30px}
 .step-lead{font-weight:700;color:#fff}
@@ -168,3 +168,15 @@ p{margin:0}
 .diff-card p{font-size:17px;line-height:1.6;color:var(--ink-soft);margin:0}
 .diff-main{border-top:6px solid var(--gold)}
 @media (max-width:900px){.diff{padding:64px 0}}
+
+/* motion */
+.step::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:var(--gold);transform-origin:left}
+.js .reveal{opacity:0;transform:translateY(18px);transition:opacity .7s ease,transform .7s ease;transition-delay:var(--d,0s)}
+.js .reveal.in{opacity:1;transform:none}
+.js .step.reveal::before{transform:scaleX(0);transition:transform 1s ease calc(var(--d,0s) + .2s)}
+.js .step.reveal.in::before{transform:scaleX(1)}
+.btn{transition:transform .2s ease,box-shadow .2s ease}
+.btn:hover{transform:translateY(-2px);box-shadow:0 8px 18px rgba(0,0,0,.18)}
+.nav-links a:not(.btn){background:linear-gradient(var(--gold),var(--gold)) left bottom/0 2px no-repeat;transition:background-size .25s ease;padding-bottom:4px}
+.nav-links a:not(.btn):hover{background-size:100% 2px}
+@media (prefers-reduced-motion:reduce){.js .reveal,.js .reveal.in{opacity:1;transform:none;transition:none}.js .step.reveal::before{transform:none;transition:none}.btn{transition:none}.btn:hover{transform:none}}
