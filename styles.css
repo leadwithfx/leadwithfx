@@ -103,8 +103,9 @@ p{margin:0}
 .quote p{font-size:16px;line-height:1.6;color:var(--ink-soft);font-style:italic}
 
 /* CTA */
-.cta{background:var(--navy);color:#fff}
-.cta-inner{padding-top:104px;padding-bottom:104px;display:flex;flex-direction:column;gap:28px;align-items:center;text-align:center}
+.cta{background:var(--navy);color:#fff;position:relative;overflow:hidden}
+.cta::before{content:"";position:absolute;inset:0;background:url(hero-bg.svg) center bottom/cover no-repeat;opacity:.12;pointer-events:none}
+.cta-inner{position:relative;padding-top:104px;padding-bottom:104px;display:flex;flex-direction:column;gap:28px;align-items:center;text-align:center}
 .cta h2{font-size:52px;line-height:1.1;max-width:800px}
 .cta p{font-size:20px;line-height:1.55;max-width:620px;color:var(--on-navy)}
 .cta p.small{font-size:15px}
