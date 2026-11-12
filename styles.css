@@ -294,3 +294,13 @@ p{margin:0}
 .q-via{margin:18px 0 0;font-size:16px;line-height:1.55;color:var(--on-navy)}
 .q-via a{color:var(--gold);font-weight:700;text-decoration:underline}
 .quiz .btn-outline{background:transparent;cursor:pointer}
+
+/* insights */
+.doc .lead{font-size:19px;color:var(--ink-soft);margin-bottom:28px}
+.posts{display:flex;flex-direction:column;gap:16px}
+.post-card{display:block;text-decoration:none;background:#fff;border:1px solid var(--line);border-left:5px solid var(--gold);border-radius:14px;padding:22px 26px}
+.post-card h2{margin:0 0 6px;font-size:24px;color:var(--navy)}
+.post-card p{margin:0;font-size:16px}
+.post-card .post-meta{margin-bottom:6px}
+.post-meta{font-size:14px;color:var(--gold-text);font-weight:700;letter-spacing:.04em;margin:0 0 10px}
+.posts-empty{background:var(--sand);border-radius:14px;padding:22px 26px}
