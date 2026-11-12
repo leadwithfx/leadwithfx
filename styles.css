@@ -309,3 +309,5 @@ p{margin:0}
 .r-ai p{margin:8px 0 0}
 .r-ai .r-ai-note{font-size:13px;color:var(--ink-soft);opacity:.85}
 #r-ai-text{white-space:pre-line}
+
+.cards .card{flex:1 1 300px}
