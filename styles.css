@@ -238,3 +238,12 @@ p{margin:0}
 .pullquote figcaption cite{font-style:italic;font-weight:600}
 .quote-after{font-size:22px;color:var(--navy);margin:8px 0 0;font-weight:600}
 @media (max-width:900px){.quote-after{font-size:19px}}
+
+/* compact quote band */
+.statement{padding:44px 0}
+.statement .wrap{gap:10px}
+.statement .statement-text{font-size:clamp(24px,3vw,32px);line-height:1.2}
+.pullquote{gap:8px}
+.pullquote figcaption{font-size:13px}
+.quote-after{font-size:18px;margin:2px 0 0}
+@media (max-width:900px){.statement{padding:32px 0}.statement .statement-text{font-size:24px}.quote-after{font-size:17px}}
