@@ -147,3 +147,5 @@ p{margin:0}
 .calendly-card{width:100%;max-width:900px;background:#fff;border-radius:16px;overflow:hidden}
 .alt-link{color:#E3C766;text-decoration:underline}
 @media (max-width:900px){.faq-inner{padding-top:64px;padding-bottom:64px}.faq summary{font-size:16px}}
+
+.faq-link{color:var(--navy);text-decoration:underline;text-decoration-color:#C9A227;text-underline-offset:3px;font-weight:600}
