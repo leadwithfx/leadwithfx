@@ -38,12 +38,14 @@
       <a href="#coaching">Coaching</a>
       <a href="#method">How It Works</a>
       <a href="#about">About</a>
+      <a href="quiz.html">Clarity Check</a>
       <a class="btn btn-gold btn-sm" href="#book">Let's Talk</a>
     </nav>
   </div>
 </header>
 
-<main>
+<a class="skip" href="#main">Skip to content</a>
+<main id="main">
 
 <section id="top" class="hero">
   <div class="wrap hero-inner">
@@ -131,6 +133,13 @@
       <div class="diff-card"><h3>Mentoring</h3><p>Shares advice from someone who has been where you're going.</p></div>
       <div class="diff-card"><h3>Consulting</h3><p>An expert gives you the answer, or does the work for you.</p></div>
     </div>
+  </div>
+</section>
+
+<section class="teaser" aria-labelledby="teaser-h">
+  <div class="wrap teaser-inner">
+    <div><p class="teaser-eyebrow">Two-minute Clarity Check</p><h2 id="teaser-h">Where are you on your path?</h2><p>Six questions. See where you are right now and what your next step could be.</p></div>
+    <a class="btn btn-gold" href="quiz.html">Take the Clarity Check</a>
   </div>
 </section>
 
@@ -232,12 +241,23 @@
       <a href="#story">The Story</a>
       <a href="#coaching">Coaching</a>
       <a href="#about">About</a>
+      <a href="privacy.html">Privacy</a>
       <a href="mailto:leadwithfx@gmail.com">leadwithfx@gmail.com</a>
       <a href="https://www.linkedin.com/in/freddiexavier">LinkedIn</a>
     </nav>
     <div class="footer-note">Online worldwide | In person in Sydney<span id="visitors" class="visitors" hidden></span></div>
   </div>
 </footer>
+<div class="sticky-cta" id="sticky" aria-hidden="true"><a class="btn btn-gold" href="#book" tabindex="-1">Book a free intro call</a></div>
+<script>
+(function(){
+  var bar=document.getElementById("sticky");if(!bar||!("IntersectionObserver" in window))return;
+  var hero=document.querySelector(".hero .btn"),book=document.getElementById("book"),vis={hero:true,book:false};
+  function upd(){var on=!vis.hero&&!vis.book;bar.classList.toggle("on",on);bar.setAttribute("aria-hidden",on?"false":"true");bar.querySelector("a").tabIndex=on?0:-1}
+  new IntersectionObserver(function(e){vis.hero=e[0].isIntersecting;upd()}).observe(hero);
+  new IntersectionObserver(function(e){vis.book=e[0].isIntersecting;upd()},{threshold:.05}).observe(book);
+})();
+</script>
 
 <script>
 (function(){

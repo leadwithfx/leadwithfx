@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en"><head>
+<title>Clarity Check | Lead with FX</title>
+<meta name="description" content="A two-minute check to see where you are on your path, and what your next step could be.">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#12294D">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600&family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<script data-goatcounter="https://leadwithfx.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+<meta property="og:title" content="Clarity Check | Lead with FX"><meta property="og:image" content="https://leadwithfx.com/og.png">
+</head><body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="brand" href="index.html" aria-label="Lead with FX home">
+      <img class="logo-img" src="logo-mark.svg" alt="" width="44" height="44">
+      <span class="brand-name">Lead with FX</span>
+    </a>
+    <nav class="nav-links" aria-label="Main">
+      <a href="index.html#story">The Story</a>
+      <a href="index.html#coaching">Coaching</a>
+      <a href="index.html#method">How It Works</a>
+      <a href="quiz.html">Clarity Check</a>
+      <a class="btn btn-gold btn-sm" href="index.html#book">Let's Talk</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main" class="quiz"><div class="wrap quiz-inner">
+<div id="quiz-intro" class="q-panel">
+  <div class="rule"></div>
+  <h1>Where are you on your path?</h1>
+  <p class="q-lead">Six quick questions. Two minutes. You'll see where you are right now and what your next step could be. Your answers stay in your browser.</p>
+  <button id="q-start" class="btn btn-gold" type="button">Start the Clarity Check</button>
+</div>
+
+<div id="quiz-run" class="q-panel" hidden>
+  <div class="q-top"><span id="q-count" class="q-count">Question 1 of 6</span>
+    <div class="q-bar" role="progressbar" aria-label="Progress" aria-valuemin="0" aria-valuemax="6" aria-valuenow="0"><span id="q-fill"></span></div></div>
+  <form id="q-form" novalidate>
+    <fieldset><legend id="q-text" tabindex="-1"></legend><div id="q-options" class="q-options"></div></fieldset>
+    <div class="q-nav"><button id="q-back" class="btn btn-outline" type="button">Back</button><button id="q-next" class="btn btn-gold" type="submit" disabled>Next</button></div>
+  </form>
+</div>
+
+<div id="quiz-result" class="q-panel" hidden aria-live="polite">
+  <p class="q-eyebrow" id="r-eyebrow"></p>
+  <h2 id="r-title" tabindex="-1"></h2>
+  <p id="r-body" class="q-lead"></p>
+  <div class="r-box"><strong>Your next step</strong><p id="r-step"></p></div>
+  <div class="r-actions"><a class="btn btn-gold" href="https://calendly.com/freddie-rx" target="_blank" rel="noopener" id="r-book">Book a free intro call</a><button id="q-again" class="btn btn-outline" type="button">Retake the check</button></div>
+  <p class="q-fine">This is a reflection tool, not an assessment or a diagnosis.</p>
+</div>
+</div></main>
+<footer class="footer">
+  <div class="wrap footer-inner">
+    <div class="footer-brand"><img class="logo-img" src="logo-mark.svg" alt="" width="40" height="40"><span>Copyright 2026 Lead with FX. All rights reserved.</span></div>
+    <nav class="footer-links" aria-label="Footer"><a href="index.html">Home</a><a href="quiz.html">Clarity Check</a><a href="privacy.html">Privacy</a><a href="mailto:leadwithfx@gmail.com">leadwithfx@gmail.com</a></nav>
+  </div>
+</footer>
+
+<script>
+(function(){
+var Q=[
+{q:"How clear are you on your next role or move?",o:["I have no real idea","A few options, but nothing feels right","I have a direction, but I'm not sure it's the right one","I know exactly what I want next"]},
+{q:"When you face an important career decision, you usually…",o:["Put it off","Go round in circles","Weigh it up, then decide with some doubt","Decide with confidence and act"]},
+{q:"How well do the people who matter know the value you bring?",o:["Hardly at all","Some of them","Most of them, but not the key decision makers","Clearly, including the key decision makers"]},
+{q:"Do you have a plan with dates for your next 90 days?",o:["No plan","A rough idea in my head","A written plan, but I'm not following it","A written plan I'm working through"]},
+{q:"Who holds you accountable for your growth?",o:["Nobody","I only check in with myself","Someone occasionally","Someone regularly, and it works"]},
+{q:"How would you describe your momentum right now?",o:["Stuck","Slow and stop-start","Steady, but not going where I want","Moving, and building speed"]}
+];
+var R=[
+{max:11,eyebrow:"Step 01",title:"Light the path",body:"Right now the main thing missing is clarity. You have the experience and the tools, but too many thoughts and options are competing, so it's hard to see the way forward.",step:"Start by getting a candid look at where you are, what's working and what's in the way. That makes the next move much easier to choose."},
+{max:18,eyebrow:"Step 02",title:"Take the step",body:"You can already see some of the path. What holds you back now is choosing the next move and committing to it, rather than waiting until everything feels certain.",step:"Pick one focused move, decide when you'll do it, and use practical tools you can apply in your next meeting, not next quarter."},
+{max:24,eyebrow:"Step 03",title:"Keep moving",body:"You have clarity and momentum. The risk now is drifting, or plateauing without noticing, because nobody is checking your direction.",step:"Add regular check-ins and honest accountability, and plan for the next level before you need it."}
+];
+var $=function(i){return document.getElementById(i)};
+var intro=$("quiz-intro"),run=$("quiz-run"),res=$("quiz-result"),form=$("q-form"),opts=$("q-options"),nextB=$("q-next"),back=$("q-back");
+var i=0,ans=[];
+function show(el){[intro,run,res].forEach(function(x){x.hidden=x!==el})}
+function ping(name){try{if(window.goatcounter&&window.goatcounter.count)window.goatcounter.count({path:name,title:name,event:true})}catch(e){}}
+function render(){
+  var q=Q[i];
+  $("q-count").textContent="Question "+(i+1)+" of "+Q.length;
+  $("q-fill").style.width=((i)/Q.length*100)+"%";
+  var pb=document.querySelector(".q-bar");pb.setAttribute("aria-valuenow",i);
+  $("q-text").textContent=q.q;
+  opts.innerHTML="";
+  q.o.forEach(function(t,k){
+    var id="o"+i+"_"+k,lab=document.createElement("label");lab.className="q-opt";lab.setAttribute("for",id);
+    var inp=document.createElement("input");inp.type="radio";inp.name="a";inp.id=id;inp.value=k+1;
+    if(ans[i]===k+1)inp.checked=true;
+    var sp=document.createElement("span");sp.textContent=t;
+    lab.appendChild(inp);lab.appendChild(sp);opts.appendChild(lab);
+  });
+  nextB.disabled=!ans[i];
+  nextB.textContent=i===Q.length-1?"See my result":"Next";
+  back.style.visibility=i===0?"hidden":"visible";
+  $("q-text").focus({preventScroll:true});
+}
+opts.addEventListener("change",function(e){ans[i]=parseInt(e.target.value,10);nextB.disabled=false});
+form.addEventListener("submit",function(e){
+  e.preventDefault();if(!ans[i])return;
+  if(i<Q.length-1){i++;render()}else{finish()}
+});
+back.addEventListener("click",function(){if(i>0){i--;render()}});
+function finish(){
+  var s=ans.reduce(function(a,b){return a+b},0),r=R[R.length-1];
+  for(var k=0;k<R.length;k++){if(s<=R[k].max){r=R[k];break}}
+  $("r-eyebrow").textContent=r.eyebrow;$("r-title").textContent=r.title;$("r-body").textContent=r.body;$("r-step").textContent=r.step;
+  show(res);$("r-title").focus();window.scrollTo({top:0,behavior:"smooth"});
+  ping("quiz-complete-"+r.title.toLowerCase().replace(/\s+/g,"-"));
+}
+$("q-start").addEventListener("click",function(){i=0;ans=[];show(run);render();ping("quiz-start")});
+$("q-again").addEventListener("click",function(){i=0;ans=[];show(intro)});
+$("r-book").addEventListener("click",function(){ping("quiz-book-click")});
+})();
+</script>
+</body></html>
