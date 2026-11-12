@@ -247,3 +247,8 @@ p{margin:0}
 .pullquote figcaption{font-size:13px}
 .quote-after{font-size:18px;margin:2px 0 0}
 @media (max-width:900px){.statement{padding:32px 0}.statement .statement-text{font-size:24px}.quote-after{font-size:17px}}
+
+/* sign-off line under the quote */
+.quote-after{position:relative;margin:14px 0 0;padding-top:16px;font-family:'Fraunces',Georgia,serif;font-weight:500;font-size:26px;line-height:1.2;color:var(--navy)}
+.quote-after::before{content:"";position:absolute;top:0;left:50%;width:48px;height:3px;margin-left:-24px;background:var(--gold)}
+@media (max-width:900px){.quote-after{font-size:22px;margin-top:10px;padding-top:14px}}
