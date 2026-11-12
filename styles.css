@@ -134,3 +134,16 @@ p{margin:0}
 }
 
 .logo-img{display:block;width:44px;height:44px;border-radius:10px}
+
+.faq{background:var(--ivory,#FAF8F3)}
+.faq-inner{padding-top:96px;padding-bottom:96px}
+.faq-list{max-width:820px;margin:0 auto;display:flex;flex-direction:column;gap:12px}
+.faq details{background:#fff;border:1px solid var(--line);border-radius:14px;padding:0 24px}
+.faq summary{cursor:pointer;list-style:none;padding:20px 0;font-weight:700;font-size:18px;color:var(--navy);display:flex;justify-content:space-between;gap:16px}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::after{content:"+";color:#C9A227;font-size:24px;line-height:1}
+.faq details[open] summary::after{content:"\2212"}
+.faq details p{padding:0 0 22px;font-size:17px;line-height:1.65;color:var(--ink-soft)}
+.calendly-card{width:100%;max-width:900px;background:#fff;border-radius:16px;overflow:hidden}
+.alt-link{color:#E3C766;text-decoration:underline}
+@media (max-width:900px){.faq-inner{padding-top:64px;padding-bottom:64px}.faq summary{font-size:16px}}
