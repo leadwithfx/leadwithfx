@@ -207,17 +207,13 @@ p{margin:0}
 .r-box p{margin:8px 0 0;font-size:18px;line-height:1.6;color:var(--ink-soft)}
 .r-actions{display:flex;flex-wrap:wrap;gap:16px}
 .q-fine{font-size:14px;color:var(--on-navy);margin:0}
-.teaser{background:var(--sand);padding:56px 0}
-.teaser-inner{display:flex;flex-wrap:wrap;gap:24px;justify-content:space-between;align-items:center}
-.teaser-eyebrow{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold-text);font-weight:800;margin:0 0 6px}
-.teaser h2{font-size:36px;margin-bottom:8px}.teaser p{margin:0;font-size:18px;color:var(--ink-soft)}
 .sticky-cta{display:none}
 @media (max-width:900px){
   .sticky-cta{display:block;position:fixed;left:0;right:0;bottom:0;z-index:50;padding:12px 16px calc(12px + env(safe-area-inset-bottom));background:rgba(18,41,77,.96);backdrop-filter:blur(8px);transform:translateY(110%);transition:transform .3s ease;box-shadow:0 -6px 20px rgba(0,0,0,.25)}
   .sticky-cta.on{transform:none}
   .sticky-cta .btn{display:block;width:100%}
   body{padding-bottom:0}
-  .quiz-inner{padding-top:48px}.teaser h2{font-size:28px}
+  .quiz-inner{padding-top:48px}
 }
 @media (prefers-reduced-motion:reduce){.sticky-cta{transition:none}.q-bar span{transition:none}}
 .q-panel>.btn,.r-actions .btn{align-self:flex-start}
@@ -251,7 +247,6 @@ p{margin:0}
 .diff{padding:52px 0}
 .faq-inner{padding-top:56px;padding-bottom:56px}
 .cta-inner{padding-top:64px;padding-bottom:64px;gap:20px}
-.teaser{padding:36px 0}
 .section-title{font-size:40px;margin-bottom:28px}
 .diff .section-title{margin-bottom:26px}
 .card{padding:32px 32px;gap:12px}
@@ -345,7 +340,6 @@ p{margin:0}
 .diff{background:var(--ivory)}
 .about{background:var(--sand)}
 .proof{background:var(--ivory)}
-.teaser-note{margin-top:10px!important;font-size:16px!important}
 html{scroll-padding-top:84px}
 
 /* nav: tighter desktop bar, hamburger below 1180px */
@@ -369,4 +363,5 @@ html{scroll-padding-top:84px}
 
 
 .r-help{margin-top:16px}
-.diff-note{margin:0 auto;font-size:21px;line-height:1.55;color:var(--navy);text-align:center;max-width:720px}
+.diff-note{margin:0 auto 16px;font-size:21px;line-height:1.55;color:var(--navy);text-align:center;max-width:720px}
+.diff-cta{text-align:center;margin-top:28px}
