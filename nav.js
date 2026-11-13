@@ -10,3 +10,13 @@
   document.addEventListener("click",function(e){if(nav.classList.contains("open")&&!nav.contains(e.target))set(false)});
   window.addEventListener("resize",function(){if(window.innerWidth>1340)set(false)});
 })();
+
+/* Open a FAQ answer when a link points straight at it. */
+(function(){
+  function openTarget(){
+    var el=location.hash.length>1&&document.getElementById(decodeURIComponent(location.hash.slice(1)));
+    if(el&&el.tagName==="DETAILS"){el.open=true;el.scrollIntoView()}
+  }
+  window.addEventListener("hashchange",openTarget);
+  openTarget();
+})();
