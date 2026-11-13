@@ -24,7 +24,7 @@ Until you set `REPORT_ENDPOINT` in `quiz.html`, the form runs in **test mode** a
    - secrets: `ANTHROPIC_API_KEY`, `BREVO_API_KEY`
    - variables: `FROM_EMAIL` (the verified sender), `ALERT_EMAIL` (where lead alerts go), `BREVO_LIST_ID` (the Pipeline list ID)
    - optional: `MODEL`; `DRY_RUN=1` to build reports without sending anything while you test.
-5. **Rate limit.** Add a rate-limiting rule on the Worker route (for example 10 requests per minute per IP).
+5. **Abuse protection.** Cloudflare's dashboard rate-limit rules need your domain on Cloudflare, and yours is at GoDaddy, so skip them. Your protections are the Anthropic monthly spend limit, Brevo's free cap of 300 emails a day, the Worker's check that requests come from leadwithfx.com, and a hidden bot trap in the form. If junk sign-ups appear, add Cloudflare Turnstile (a free CAPTCHA).
 6. **Switch it on.** Put the Worker URL in `quiz.html` as `REPORT_ENDPOINT`, commit, push. Send yourself a test report first.
 
 ## Checks
