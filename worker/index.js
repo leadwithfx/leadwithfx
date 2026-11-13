@@ -14,7 +14,7 @@ const BOOK_URL = "https://calendly.com/freddie-rx";
 const ASSESS_URL = "https://www.viacharacter.org/account/register";
 
 const SYSTEM = `You write a short, warm, plain-English reflection for someone who has just completed a ten-question career "Clarity Check".
-You are given their answers as question and chosen option pairs. The first three items say who they are, whether they have worked with a coach before, and what they most want from coaching.
+You are given their answers as question and chosen option pairs. The first three items say who they are, whether they have worked with a coach before, and what has helped them get unstuck before.
 Rules:
 - 90 to 120 words, two short paragraphs, no headings, no bullet points, no emojis.
 - Paragraph 1: name what looks strong, then the main gap you can see, using only what their answers show.
@@ -24,7 +24,7 @@ Rules:
 - Do not invent facts about their job, employer or life beyond the answers.
 - Use "you". Plain language. Australian spelling.`;
 
-const QUESTIONS = [{"q":"Which best describes you?","o":["Tech leader or manager","Career changer","Early-career professional","Something else"],"profile":1},{"q":"Have you worked with a coach before?","o":["No, this would be my first time","Once or twice","Yes, several times"],"profile":1},{"q":"What do you most want from this?","o":["Someone to think it through with me","Someone to tell me what to do","Someone to do it for me","I'm not sure yet"],"profile":1},{"q":"How clear are you on your next role or move?","o":["I have no real idea","A few options, but nothing feels right","I have a direction, but I'm not sure it's the right one","I know exactly what I want next"]},{"q":"When you face an important career decision, you usually…","o":["Put it off","Go round in circles","Weigh it up, then decide with some doubt","Decide with confidence and act"]},{"q":"How well do the people who matter know the value you bring?","o":["Hardly at all","Some of them","Most of them, but not the key decision makers","Clearly, including the key decision makers"]},{"q":"Do you have a plan with dates for your next 90 days?","o":["No plan","A rough idea in my head","A written plan, but I'm not following it","A written plan I'm working through"]},{"q":"Who holds you accountable for your growth?","o":["Nobody","I only check in with myself","Someone occasionally","Someone regularly, and it works"]},{"q":"How would you describe your momentum right now?","o":["Stuck","Slow and stop-start","Steady, but not going where I want","Moving, and building speed"]},{"q":"How well do you know the gap between where you are and the next level?","o":["I have no idea what it takes","I have a vague sense","I know some of the gaps, but haven't confirmed them","I know exactly what to build next"]},{"q":"How much of your time goes on what matters most for your growth?","o":["Almost none, I'm in firefighting mode","A little, when I can find the time","About half","Most of it, and I protect that time"]},{"q":"How confident are you influencing senior stakeholders?","o":["I avoid it","I do it, but it feels uncomfortable","Fairly confident in familiar situations","Confident, even in high-stakes rooms"]},{"q":"Who speaks up for you when you're not in the room?","o":["Nobody","One or two people, rarely","A few people, but not senior ones","Several senior sponsors who advocate for me"]}];
+const QUESTIONS = [{"q":"Which best describes you?","o":["Tech leader or manager","Career changer","Early-career professional","Something else"],"profile":1},{"q":"Have you worked with a coach before?","o":["No, this would be my first time","Once or twice","Yes, several times"],"profile":1},{"q":"Think of a time you got unstuck on something important. What made the difference?","o":["I talked it through with someone and the answer became clear to me","Someone who had done it told me what worked for them","An expert gave me the answer or took it on","I haven't really got unstuck yet"],"profile":1},{"q":"How clear are you on your next role or move?","o":["I have no real idea","A few options, but nothing feels right","I have a direction, but I'm not sure it's the right one","I know exactly what I want next"]},{"q":"When you face an important career decision, you usually…","o":["Put it off","Go round in circles","Weigh it up, then decide with some doubt","Decide with confidence and act"]},{"q":"How well do the people who matter know the value you bring?","o":["Hardly at all","Some of them","Most of them, but not the key decision makers","Clearly, including the key decision makers"]},{"q":"Do you have a plan with dates for your next 90 days?","o":["No plan","A rough idea in my head","A written plan, but I'm not following it","A written plan I'm working through"]},{"q":"Who holds you accountable for your growth?","o":["Nobody","I only check in with myself","Someone occasionally","Someone regularly, and it works"]},{"q":"How would you describe your momentum right now?","o":["Stuck","Slow and stop-start","Steady, but not going where I want","Moving, and building speed"]},{"q":"How well do you know the gap between where you are and the next level?","o":["I have no idea what it takes","I have a vague sense","I know some of the gaps, but haven't confirmed them","I know exactly what to build next"]},{"q":"How much of your time goes on what matters most for your growth?","o":["Almost none, I'm in firefighting mode","A little, when I can find the time","About half","Most of it, and I protect that time"]},{"q":"How confident are you influencing senior stakeholders?","o":["I avoid it","I do it, but it feels uncomfortable","Fairly confident in familiar situations","Confident, even in high-stakes rooms"]},{"q":"Who speaks up for you when you're not in the room?","o":["Nobody","One or two people, rarely","A few people, but not senior ones","Several senior sponsors who advocate for me"]}];
 
 const THEMES = [
   { n: "Clarity", q: [1, 2, 7], plan: [
@@ -109,7 +109,7 @@ export function fallbackReflection(a) {
     " as the one with the most room to grow.\n\nA question to sit with: what would be different in 90 days if " + a.low.n.toLowerCase() + " moved up one level?";
 }
 
-const PROFILE = QUESTIONS[0].o, COACHED = QUESTIONS[1].o, WANTS = QUESTIONS[2].o;
+const PROFILE = QUESTIONS[0].o, COACHED = QUESTIONS[1].o, HELPED = QUESTIONS[2].o;
 
 export function buildReport(name, nums, a, reflection, aiWritten) {
   const first = esc(name);
@@ -145,7 +145,7 @@ export function buildReport(name, nums, a, reflection, aiWritten) {
 
 async function aiReflection(env, nums) {
   if (!env.ANTHROPIC_API_KEY) return null;
-  const userText = nums.map((n, i) => (i === 0 ? "Who they are" : i === 1 ? "Coaching history" : i === 2 ? "What they want from this" : "Q" + (i - 2)) + ": " + QUESTIONS[i].q + " -> " + QUESTIONS[i].o[n - 1]).join("\n");
+  const userText = nums.map((n, i) => (i === 0 ? "Who they are" : i === 1 ? "Coaching history" : i === 2 ? "What has helped them get unstuck" : "Q" + (i - 2)) + ": " + QUESTIONS[i].q + " -> " + QUESTIONS[i].o[n - 1]).join("\n");
   const ctrl = new AbortController();
   const t = setTimeout(() => ctrl.abort(), 12000);
   try {
@@ -199,11 +199,11 @@ export default {
 
     if (req.contact) {
       const today = new Date().toISOString().slice(0, 10);
-      const attrs = { FIRSTNAME: req.name, BAND: a.band.title, PROFILE: PROFILE[req.nums[0] - 1], COACHED_BEFORE: COACHED[req.nums[1] - 1], WANTS: WANTS[req.nums[2] - 1], LOWEST_THEME: a.low.n, CONSENT_DATE: today, STAGE: "Report sent" };
+      const attrs = { FIRSTNAME: req.name, BAND: a.band.title, PROFILE: PROFILE[req.nums[0] - 1], COACHED_BEFORE: COACHED[req.nums[1] - 1], HELPED_BEFORE: HELPED[req.nums[2] - 1], LOWEST_THEME: a.low.n, CONSENT_DATE: today, STAGE: "Report sent" };
       try {
         await brevo(env, "contacts", { email: req.email, attributes: attrs, listIds: env.BREVO_LIST_ID ? [Number(env.BREVO_LIST_ID)] : [], updateEnabled: true });
         if (env.ALERT_EMAIL) {
-          const rows = [["Name", req.name], ["Email", req.email], ["Result", a.band.title], ["Profile", attrs.PROFILE], ["Coaching before", attrs.COACHED_BEFORE], ["Wants", attrs.WANTS], ["Lowest theme", a.low.n], ["Consent", "Ticked: Freddie can contact me personally (" + today + ")"], ["Stage", "Report sent"]];
+          const rows = [["Name", req.name], ["Email", req.email], ["Result", a.band.title], ["Profile", attrs.PROFILE], ["Coaching before", attrs.COACHED_BEFORE], ["What helped before", attrs.HELPED_BEFORE], ["Lowest theme", a.low.n], ["Consent", "Ticked: Freddie can contact me personally (" + today + ")"], ["Stage", "Report sent"]];
           await brevo(env, "smtp/email", {
             sender, to: [{ email: env.ALERT_EMAIL }],
             subject: "New lead: " + req.name + ", " + a.band.title,

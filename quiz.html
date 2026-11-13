@@ -58,7 +58,7 @@
   <p id="r-body" class="q-lead" hidden></p>
   <div id="r-stepbox" class="r-box" hidden><strong>Your next step</strong><p id="r-step"></p></div>
   <div class="r-box r-fit"><strong id="r-fit-h"></strong><p id="r-fit-p"></p><p><a id="r-fit-a" class="r-fit-link" href="index.html#coaching">See how it works</a></p></div>
-  <div class="r-box r-want"><strong id="r-want-h"></strong><p id="r-want-p"></p></div>
+  <div class="r-box r-help"><strong id="r-help-h"></strong><p id="r-help-p"></p></div>
   <div class="r-box r-offer" id="r-offer"><strong>Where should I send your Clarity Report?</strong>
     <ul>
       <li>Your overall result and your next step</li>
@@ -112,7 +112,7 @@ var REPORT_ENDPOINT="";var TEST=/[?&]test=1(&|$)/.test(location.search),LIVE=!!R
 var Q=[
 {q:"Which best describes you?",o:["Tech leader or manager","Career changer","Early-career professional","Something else"],profile:1},
 {q:"Have you worked with a coach before?",o:["No, this would be my first time","Once or twice","Yes, several times"],profile:1},
-{q:"What do you most want from this?",o:["Someone to think it through with me","Someone to tell me what to do","Someone to do it for me","I'm not sure yet"],profile:1},
+{q:"Think of a time you got unstuck on something important. What made the difference?",o:["I talked it through with someone and the answer became clear to me","Someone who had done it told me what worked for them","An expert gave me the answer or took it on","I haven't really got unstuck yet"],profile:1},
 {q:"How clear are you on your next role or move?",o:["I have no real idea","A few options, but nothing feels right","I have a direction, but I'm not sure it's the right one","I know exactly what I want next"]},
 {q:"When you face an important career decision, you usually…",o:["Put it off","Go round in circles","Weigh it up, then decide with some doubt","Decide with confidence and act"]},
 {q:"How well do the people who matter know the value you bring?",o:["Hardly at all","Some of them","Most of them, but not the key decision makers","Clearly, including the key decision makers"]},
@@ -166,11 +166,11 @@ var FIT=[
 {h:"A good fit: Career Coaching",p:"You're building the foundations of your career, and a clear direction early makes every later move easier.",l:"Career"},
 {h:"Where to start",p:"Leadership Coaching and Career Coaching both work one to one. On the intro call we'll work out which suits you.",l:"Not sure yet"}
 ];
-var WANT=[
-{h:"This is what coaching is",p:"You said you'd like someone to think it through with. That's coaching: you set the agenda, I ask the questions, and you leave with your own answers and a clear next step."},
-{h:"What I offer, and what I don't",p:"You said you'd like someone to tell you what to do. That's mentoring, and it isn't what I offer. I help you find your own answers. If you want advice from someone who has done it before, a mentor in your field may suit you better. If you'd like to find your own answers with support, the intro call is a good place to test that."},
-{h:"What I offer, and what I don't",p:"You said you'd like someone to do it for you. That's consulting, and it isn't what I offer. I won't do the work for you; I help you decide and act on it yourself. If you want it done, a specialist or consultant is the better choice. If what you need is clarity on what to do and the push to do it, coaching can help."},
-{h:"Coaching, mentoring and consulting",p:"Coaching helps you find your own answers. Mentoring is advice from someone who has been there. Consulting is an expert doing the work for you. I coach. On the intro call we can work out which of the three you need."}
+var HELP=[
+{h:"This is what coaching is",p:"You said talking it through is what helped you get unstuck. That's coaching: you set the agenda, I ask the questions, and you leave with your own answers and a clear next step."},
+{h:"What I offer, and what I don't",p:"You said hearing from someone who had done it is what helped. That's mentoring, and it isn't what I offer. I help you find your own answers. A mentor in your field may suit you better. If you'd also like to work out your own answers with support, the intro call is a good place to test that."},
+{h:"What I offer, and what I don't",p:"You said it helped most when an expert gave you the answer or took it on. That's consulting, and it isn't what I offer. I won't do the work for you; I help you decide and act on it yourself. If you want it done, a specialist or consultant is the better choice. If you need clarity on what to do and the push to do it, coaching can help."},
+{h:"Coaching, mentoring and consulting",p:"You haven't found what unsticks you yet, which is common. Coaching helps you find your own answers. Mentoring is advice from someone who has been there. Consulting is an expert doing the work for you. I coach. On the intro call we can work out which of the three you need."}
 ];
 var EXP=[
 "Coaching is new to you, which is fine. The intro call is a relaxed conversation and you don't need to prepare anything.",
@@ -182,9 +182,9 @@ function finish(){
   for(var k=0;k<R.length;k++){if(s<=R[k].max){r=R[k];break}}
   var f=FIT[(ans[0]||4)-1];
   $("r-fit-h").textContent=f.h;$("r-fit-p").textContent=f.p+" "+EXP[(ans[1]||1)-1];
-  var w=WANT[(ans[2]||4)-1];
-  $("r-want-h").textContent=w.h;$("r-want-p").textContent=w.p;
-  var url="https://calendly.com/freddie-rx?a1="+encodeURIComponent("Clarity Check: "+r.title+". Profile: "+Q[0].o[(ans[0]||4)-1]+". Coaching before: "+Q[1].o[(ans[1]||1)-1]+". Wants: "+Q[2].o[(ans[2]||4)-1]+".");
+  var w=HELP[(ans[2]||4)-1];
+  $("r-help-h").textContent=w.h;$("r-help-p").textContent=w.p;
+  var url="https://calendly.com/freddie-rx?a1="+encodeURIComponent("Clarity Check: "+r.title+". Profile: "+Q[0].o[(ans[0]||4)-1]+". Coaching before: "+Q[1].o[(ans[1]||1)-1]+". What helped before: "+Q[2].o[(ans[2]||4)-1]+".");
   $("r-book").href=url;$("s-book").href=url;
   var full=!LIVE;
   $("r-offer").hidden=full;$("r-body").hidden=!full;$("r-stepbox").hidden=!full;
