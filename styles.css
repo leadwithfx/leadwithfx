@@ -368,3 +368,5 @@ html{scroll-padding-top:84px}
 .diff-gap{margin-top:36px}
 .hero-by{margin:4px 0 0;font-size:15px;letter-spacing:.06em;color:var(--on-navy);opacity:.9}
 .eyebrow.again{margin-top:48px}
+.about .eyebrow.again{margin-top:36px}
+.about-link{color:var(--navy);font-weight:700;text-decoration:underline}
