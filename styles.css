@@ -370,3 +370,4 @@ html{scroll-padding-top:84px}
 .eyebrow.again{margin-top:48px}
 .about .eyebrow.again{margin-top:36px}
 .about-link{color:var(--navy);font-weight:700;text-decoration:underline}
+.time-note{text-wrap:balance;margin:44px auto 0;max-width:720px;text-align:center;font-size:19px;line-height:1.55;color:var(--navy)}
