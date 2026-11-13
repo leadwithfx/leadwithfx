@@ -8,5 +8,5 @@
   links.addEventListener("click",function(e){if(e.target.closest("a"))set(false)});
   document.addEventListener("keydown",function(e){if(e.key==="Escape"&&nav.classList.contains("open")){set(false);btn.focus()}});
   document.addEventListener("click",function(e){if(nav.classList.contains("open")&&!nav.contains(e.target))set(false)});
-  window.addEventListener("resize",function(){if(window.innerWidth>900)set(false)});
+  window.addEventListener("resize",function(){if(window.innerWidth>1340)set(false)});
 })();

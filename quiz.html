@@ -22,12 +22,13 @@
       <span class="brand-name">Lead with FX</span>
     </a>
     <nav class="nav-links" id="nav-links" aria-label="Main">
-      <a href="index.html#story">The Story</a>
-      <a href="index.html#coaching">Coaching</a>
+      <a href="index.html#story">Sound Familiar?</a>
+      <a href="index.html#what-is-coaching">What Coaching Is</a>
+      <a href="quiz.html">Is It For You?</a>
+      <a href="index.html#coaching">Work Together</a>
+      <a href="index.html#about">Why Me</a>
       <a href="index.html#method">How It Works</a>
-      <a href="index.html#about">About</a>
-      <a href="quiz.html">Clarity Check</a>
-      <a href="insights.html">Insights</a>
+      <a href="index.html#faq">Questions</a>
       <a class="btn btn-gold btn-sm" href="index.html#book">Let's Talk</a>
     </nav>
     <button id="nav-toggle" class="nav-toggle" type="button" aria-expanded="false" aria-controls="nav-links" aria-label="Open menu"><span></span><span></span><span></span></button>
@@ -38,7 +39,7 @@
 <div id="quiz-intro" class="q-panel">
   <div class="rule"></div>
   <h1>Where are you on your path?</h1>
-  <p class="q-lead" id="q-lead">Ten quick questions. Three minutes. You'll see which kind of coaching fits you, and you can ask for a full report by email. Your answers stay in your browser unless you ask for that report.</p>
+  <p class="q-lead" id="q-lead">Ten quick questions. Three minutes. You'll see which kind of coaching fits you<span id="q-rep"> and you can ask for a full report by email</span>. Your answers stay in your browser<span id="q-rep2"> unless you ask for that report</span>.</p>
   <button id="q-start" class="btn btn-gold" type="button">Start the Clarity Check</button>
 </div>
 
@@ -52,10 +53,12 @@
 </div>
 
 <div id="quiz-result" class="q-panel" hidden aria-live="polite">
-  <p class="q-eyebrow">Your Clarity Check</p>
+  <p class="q-eyebrow" id="r-eyebrow">Your Clarity Check</p>
   <h2 id="r-title" tabindex="-1">Thanks for finishing it</h2>
+  <p id="r-body" class="q-lead" hidden></p>
+  <div id="r-stepbox" class="r-box" hidden><strong>Your next step</strong><p id="r-step"></p></div>
   <div class="r-box r-fit"><strong id="r-fit-h"></strong><p id="r-fit-p"></p><p><a id="r-fit-a" class="r-fit-link" href="index.html#coaching">See how it works</a></p></div>
-  <div class="r-box r-offer"><strong>Where should I send your Clarity Report?</strong>
+  <div class="r-box r-offer" id="r-offer"><strong>Where should I send your Clarity Report?</strong>
     <ul>
       <li>Your overall result and your next step</li>
       <li>Your results across five themes: clarity, visibility, accountability, momentum and influence</li>
@@ -104,7 +107,7 @@
 
 <script>
 (function(){
-var REPORT_ENDPOINT=""; /* set to your deployed Worker URL to switch on emailed reports; empty = test mode, nothing is sent */
+var REPORT_ENDPOINT="";var TEST=/[?&]test=1(&|$)/.test(location.search),LIVE=!!REPORT_ENDPOINT||TEST; /* set to your deployed Worker URL to switch on emailed reports; empty = test mode, nothing is sent */
 var Q=[
 {q:"Which best describes you?",o:["Tech leader or manager","Career changer","Early-career professional","Something else"],profile:1},
 {q:"Have you worked with a coach before?",o:["No, this would be my first time","Once or twice","Yes, several times"],profile:1},
@@ -127,6 +130,7 @@ var R=[
 var $=function(i){return document.getElementById(i)};
 var intro=$("quiz-intro"),run=$("quiz-run"),res=$("quiz-result"),rep=$("quiz-report"),sent=$("quiz-sent"),form=$("q-form"),opts=$("q-options"),nextB=$("q-next"),back=$("q-back");
 var i=0,ans=[];
+if(!LIVE){var a1=document.getElementById("q-rep"),a2=document.getElementById("q-rep2");if(a1)a1.remove();if(a2)a2.remove()}
 function show(el){[intro,run,res,rep,sent].forEach(function(x){x.hidden=x!==el})}
 function ping(name){try{if(window.goatcounter&&window.goatcounter.count)window.goatcounter.count({path:name,title:name,event:true})}catch(e){}}
 function render(){
@@ -172,6 +176,10 @@ function finish(){
   $("r-fit-h").textContent=f.h;$("r-fit-p").textContent=f.p+" "+EXP[(ans[1]||1)-1];
   var url="https://calendly.com/freddie-rx?a1="+encodeURIComponent("Clarity Check: "+r.title+". Profile: "+Q[0].o[(ans[0]||4)-1]+". Coaching before: "+Q[1].o[(ans[1]||1)-1]+".");
   $("r-book").href=url;$("s-book").href=url;
+  var full=!LIVE;
+  $("r-offer").hidden=full;$("r-body").hidden=!full;$("r-stepbox").hidden=!full;
+  if(full){$("r-eyebrow").textContent=r.eyebrow;$("r-title").textContent=r.title;$("r-body").textContent=r.body;$("r-step").textContent=r.step}
+  else{$("r-eyebrow").textContent="Your Clarity Check";$("r-title").textContent="Thanks for finishing it"}
   show(res);$("r-title").focus();window.scrollTo({top:0,behavior:"smooth"});
   ping("quiz-complete-"+r.title.toLowerCase().replace(/\s+/g,"-"));
 }
