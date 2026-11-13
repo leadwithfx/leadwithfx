@@ -413,16 +413,6 @@ h1,h2,h3{font-weight:400}
 .glass .hero-sub{font-size:20px}
 @media (max-width:700px){.creds.six .cred{flex:1 1 100%}.cred{overflow-wrap:anywhere}}
 h1,h2,h3,.brand-name,.statement-text,.quote-head,.quote-after,.quiz legend,.method .num{font-variation-settings:"WONK" 0}
-/* Booking section photo */
-.cta::before{background:linear-gradient(rgba(12,30,58,.66),rgba(12,30,58,.82)),url(book-bg.jpg) 65% center/cover no-repeat;opacity:1}
-@media (min-width:1000px){
-  .cta::before{background:linear-gradient(90deg,rgba(12,30,58,.72),rgba(12,30,58,.66) 50%,rgba(12,30,58,.82)),url(book-bg.jpg) 58% center/150% auto no-repeat}
-  .cta-split{flex-direction:row;align-items:center;justify-content:space-between;gap:56px;text-align:left}
-  .cta-copy{flex:1 1 0;display:flex;flex-direction:column;gap:22px;align-items:flex-start;min-width:0}
-  .cta-split .calendly-card{flex:0 0 min(560px,50%);margin:0}
-  .cta-copy h2{font-size:46px}
-}
-@media (max-width:999px){.cta-copy{display:flex;flex-direction:column;gap:20px;align-items:center;order:0}.cta-split .calendly-card{order:1}.cta::before{background-position:center,62% center}}
 /* Hero: own photo */
 .hero{background:var(--sand) url(hero-photo.jpg) 72% center/cover no-repeat}
 .glass{max-width:620px}
