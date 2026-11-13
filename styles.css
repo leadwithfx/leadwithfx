@@ -382,3 +382,10 @@ html{scroll-padding-top:84px}
   .navjs .nav.open .nav-links a:not(.btn){display:block;padding:16px 4px;font-size:15px;letter-spacing:.08em;border-bottom:1px solid var(--line);background:none}
   .navjs .nav.open .nav-links a.btn{display:block;text-align:center;margin-top:14px;padding:16px 22px;font-size:14px}
 }
+
+/* coaching vs what I don't offer */
+.diff-tag{align-self:flex-start;font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;padding:5px 10px;border-radius:999px;background:#EDE8D8;color:#5b5648}
+.diff-tag.diff-yes{background:var(--navy);color:#fff}
+.diff-no{background:transparent;border:1.5px dashed #cfc7b2}
+.diff-no h3,.diff-no p{color:#6b665a}
+.diff-note{margin:28px 0 0;font-size:19px;line-height:1.5;color:var(--navy);text-align:center;max-width:720px;margin-left:auto;margin-right:auto}
