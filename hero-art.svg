@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000" role="img" aria-hidden="true">
+  <!-- Placeholder artwork. Replace hero-art.svg (and the <img> in index.html) with a real photo when ready. -->
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FBF1D6"/>
+      <stop offset="0.55" stop-color="#F6E7BF"/>
+      <stop offset="1" stop-color="#F0EADB"/>
+    </linearGradient>
+    <radialGradient id="sun" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#FFF6D8" stop-opacity="1"/>
+      <stop offset="0.35" stop-color="#F2CF6B" stop-opacity="0.75"/>
+      <stop offset="1" stop-color="#F2CF6B" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="800" height="1000" fill="url(#sky)"/>
+  <circle cx="560" cy="330" r="260" fill="url(#sun)"/>
+  <circle cx="560" cy="330" r="46" fill="#FFF3CF"/>
+  <path d="M0 610 L150 500 L260 575 L400 430 L540 560 L680 470 L800 560 L800 1000 L0 1000Z" fill="#E7D8B0"/>
+  <path d="M0 700 L120 620 L250 690 L420 560 L600 690 L720 620 L800 670 L800 1000 L0 1000Z" fill="#CDAA3E" fill-opacity="0.55"/>
+  <path d="M0 800 L160 730 L330 800 L520 690 L700 790 L800 740 L800 1000 L0 1000Z" fill="#12294D" fill-opacity="0.92"/>
+  <path d="M0 900 L200 850 L420 910 L620 840 L800 890 L800 1000 L0 1000Z" fill="#0C1E3A"/>
+  <path d="M300 1000 C 300 930, 480 920, 430 850 C 380 790, 250 780, 330 720 C 410 660, 540 650, 520 560 C 505 490, 540 420, 560 380" fill="none" stroke="#FAF8F3" stroke-width="7" stroke-linecap="round" stroke-dasharray="1 20"/>
+</svg>
