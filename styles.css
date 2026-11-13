@@ -359,3 +359,26 @@ p{margin:0}
 .rp-err{margin:0;font-weight:700;color:#FFB4A8;font-size:16px}
 @media (max-width:900px){.r-small{display:block;margin:10px 0 0}.r-offer .btn{width:100%}}
 .quiz button.btn-gold{border:0}
+/* section rhythm after reorder */
+.diff{background:var(--ivory)}
+.about{background:var(--sand)}
+.proof{background:var(--ivory)}
+.teaser-note{margin-top:10px!important;font-size:16px!important}
+html{scroll-padding-top:84px}
+
+/* nav: tighter desktop bar, hamburger below 1180px */
+.nav-links{gap:16px;font-size:12.5px;letter-spacing:.05em}
+.nav-links a.btn{letter-spacing:.06em}
+@media (max-width:1340px){
+  .nav-inner{gap:6px}
+  .navjs .nav-inner{flex-wrap:nowrap}
+  .navjs .nav.open .nav-inner{flex-wrap:wrap}
+  .brand{margin-right:auto}
+  .navjs .nav-toggle{display:flex;order:3;margin-right:-8px;flex:0 0 48px}
+  .navjs .nav-links{order:2;gap:12px}
+  .navjs .nav-links a:not(.btn){display:none}
+  .navjs .nav-links a.btn{padding:11px 16px;font-size:12px;white-space:nowrap}
+  .navjs .nav.open .nav-links{flex:0 0 100%;order:4;flex-direction:column;flex-wrap:nowrap;align-items:stretch;gap:0;padding:4px 0 12px;max-height:calc(100vh - 80px);overflow-y:auto;border-top:1px solid var(--line)}
+  .navjs .nav.open .nav-links a:not(.btn){display:block;padding:16px 4px;font-size:15px;letter-spacing:.08em;border-bottom:1px solid var(--line);background:none}
+  .navjs .nav.open .nav-links a.btn{display:block;text-align:center;margin-top:14px;padding:16px 22px;font-size:14px}
+}
