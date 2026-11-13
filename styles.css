@@ -412,3 +412,4 @@ h1,h2,h3{font-weight:400}
 .glass h1,.glass .hero-sub{white-space:normal;max-width:100%}
 .glass .hero-sub{font-size:20px}
 @media (max-width:700px){.creds.six .cred{flex:1 1 100%}.cred{overflow-wrap:anywhere}}
+h1,h2,h3,.brand-name,.statement-text,.quote-head,.quote-after,.quiz legend,.method .num{font-variation-settings:"WONK" 0}
