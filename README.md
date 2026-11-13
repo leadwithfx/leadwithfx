@@ -1,30 +1,24 @@
 # Lead with FX
 
-Static one-page website. No build step. Open `index.html` in a browser to preview.
+Static website for leadwithfx.com. No build step: open `index.html` in a browser to preview.
 
 ## Files
-- `index.html` the page
-- `styles.css` all styling (colours are CSS variables at the top)
-- `headshot.jpg` add your photo here (320 x 420 or similar portrait)
-- `logo.png` optional, add your logo here
+- `index.html` home page. `quiz.html` Clarity Check. `insights.html` article list (new posts start from `insights/TEMPLATE.html`). `privacy.html` privacy policy.
+- `styles.css` all styling. Brand colours are CSS variables at the top.
+- `nav.js` mobile menu.
+- `worker/` Cloudflare Worker that sends the Clarity Report. See `worker/README.md`.
+- `CNAME`, `.nojekyll`, `robots.txt`, `sitemap.xml` hosting and search files.
 
-## Before you publish
-1. Search `index.html` for `BOOKING_LINK` and replace it with your calendar link.
-2. Replace the `[YOUR LOGO]` placeholders with your logo image (see the comment in the header).
-3. Add `headshot.jpg` next to `index.html`.
-4. Replace `[SUBURB / CBD / VENUE OPTIONS]` in the "In person" card.
-5. Replace the three testimonial placeholders with real client quotes, or delete that section.
+## Before going live with new features
+- Clarity Report: set `REPORT_ENDPOINT` in `quiz.html` to the Worker address. While it is empty, visitors see the full result on screen and no report form. Add `?test=1` to the quiz address to preview the form without sending anything.
+- Testimonials: once you have real quotes, remove `hidden` from `<section class="proof">` in `index.html`.
+- Insights: add the link back to the top nav in every page once the first post is published.
 
-## Hosting
-Works on any static host (GitHub Pages, Netlify, Cloudflare Pages, GoDaddy hosting).
+## Hosting (GitHub Pages)
+Deploys from the `main` branch, root folder. Custom domain leadwithfx.com. Tick "Enforce HTTPS" in repo Settings > Pages.
 
-## Publishing on leadwithfx.com (GitHub Pages)
-1. Push these files to a GitHub repo (index.html at the root).
-2. Repo Settings > Pages > deploy from branch (main, / root). Custom domain: leadwithfx.com. Tick "Enforce HTTPS" when available.
-3. At your domain registrar, DNS:
-   - A  @  185.199.108.153
-   - A  @  185.199.109.153
-   - A  @  185.199.110.153
-   - A  @  185.199.111.153
-   - CNAME  www  <your-github-username>.github.io
-4. Remove any registrar "parking page" or forwarding on the domain. DNS can take minutes to a few hours.
+DNS at the registrar:
+- A `@` 185.199.108.153, 185.199.109.153, 185.199.110.153, 185.199.111.153
+- CNAME `www` leadwithfx.github.io
+
+Remove any registrar parking page or forwarding. DNS can take minutes to a few hours.

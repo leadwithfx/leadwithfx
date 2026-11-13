@@ -31,8 +31,6 @@ p{margin:0}
 .label{font-size:13px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--gold-text)}
 .eyebrow{font-family:'Manrope',sans-serif;font-size:14px;letter-spacing:.16em;text-transform:uppercase;font-weight:800;color:var(--gold-text)}
 .rule{width:64px;height:4px;background:var(--gold)}
-.logo-slot{display:flex;align-items:center;justify-content:center;width:160px;height:48px;border:2px dashed #9AA6BA;border-radius:10px;font-size:12px;font-weight:800;letter-spacing:.1em;color:#4A5B78}
-.logo-slot.small{width:110px;height:34px;font-size:11px;border-color:#7F8EA8;color:var(--on-navy)}
 
 /* Nav */
 .nav{background:var(--ivory);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:10}
@@ -94,7 +92,6 @@ p{margin:0}
 .about-text h2{font-size:44px;line-height:1.1;color:var(--navy)}
 .creds{display:flex;flex-wrap:wrap;gap:20px;margin-top:24px}
 .cred{flex:1 1 240px;min-width:0;background:#fff;border:1px solid var(--line);border-radius:14px;padding:28px;display:flex;flex-direction:column;gap:10px;font-size:16px;color:var(--ink-soft)}
-.cred-big{font-family:'Fraunces',Georgia,serif;font-size:36px;color:var(--navy)}
 
 /* Proof */
 .proof{background:var(--sand);padding:96px 0}
@@ -131,7 +128,6 @@ p{margin:0}
   .coaching,.method,.about,.proof{padding-top:64px;padding-bottom:64px}
   .card{padding:32px 24px}
   .cta-inner{padding-top:72px;padding-bottom:72px}
-  .logo-slot{width:120px;height:40px}
   .brand-name{font-size:18px}
 }
 
@@ -286,13 +282,9 @@ p{margin:0}
 }
 
 /* about list */
-.about-list{margin:0 0 16px;padding-left:20px;display:flex;flex-direction:column;gap:6px;font-size:17px;line-height:1.55;color:var(--ink-soft)}
-.about-list b{color:var(--navy)}
 
 .creds.six .cred{flex:1 1 30%}
 
-.q-via{margin:18px 0 0;font-size:16px;line-height:1.55;color:var(--on-navy)}
-.q-via a{color:var(--gold);font-weight:700;text-decoration:underline}
 .quiz .btn-outline{background:transparent;cursor:pointer}
 
 /* insights */
@@ -305,10 +297,6 @@ p{margin:0}
 .post-meta{font-size:14px;color:var(--gold-text);font-weight:700;letter-spacing:.04em;margin:0 0 10px}
 .posts-empty{background:var(--sand);border-radius:14px;padding:22px 26px}
 
-.r-ai{margin-top:16px;border-left:5px solid var(--gold)}
-.r-ai p{margin:8px 0 0}
-.r-ai .r-ai-note{font-size:13px;color:var(--ink-soft);opacity:.85}
-#r-ai-text{white-space:pre-line}
 
 .cards .card{flex:1 1 300px}
 
@@ -389,3 +377,4 @@ html{scroll-padding-top:84px}
 .diff-no{background:transparent;border:1.5px dashed #cfc7b2}
 .diff-no h3,.diff-no p{color:#6b665a}
 .diff-note{margin:28px 0 0;font-size:19px;line-height:1.5;color:var(--navy);text-align:center;max-width:720px;margin-left:auto;margin-right:auto}
+
