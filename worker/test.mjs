@@ -52,5 +52,28 @@ r = await w.fetch(mk("https://evil.com", base), {});
 t("evil origin 403", r.status === 403);
 r = await w.fetch(mk(ORI, { ...base, email: "bad" }), {});
 t("bad request 400", r.status === 400);
+// abuse protection
+{
+  const seen = [];
+  globalThis.fetch = async (u, o) => { seen.push(u); if (u.includes("turnstile")) { const ok = String(o.body).includes("goodtoken"); return new Response(JSON.stringify({ success: ok }), { status: 200 }); } if (u.includes("anthropic")) return new Response(JSON.stringify({ content: [{ text: "Test reflection that is long enough to pass the length check." }] }), { status: 200 }); return new Response("{}", { status: 201 }); };
+  const env = { DRY_RUN: "1", TURNSTILE_SECRET: "s" };
+  let r = await w.fetch(mk(ORI, base), env);
+  t("turnstile on: no token rejected", r.status === 403);
+  r = await w.fetch(mk(ORI, { ...base, ts: "badtoken-badtoken" }), env);
+  t("turnstile on: bad token rejected", r.status === 403);
+  r = await w.fetch(mk(ORI, { ...base, ts: "goodtoken-goodtoken" }), env);
+  t("turnstile on: good token accepted", r.status === 200);
+  r = await w.fetch(mk(ORI, base), { DRY_RUN: "1" });
+  t("turnstile off: still works", r.status === 200);
+  r = await w.fetch(mk(ORI, base), { DRY_RUN: "1", LIMITER: { limit: async () => ({ success: false }) } });
+  t("rate limit returns 429", r.status === 429);
+  r = await w.fetch(mk(ORI, base), { DRY_RUN: "1", LIMITER: { limit: async () => ({ success: true }) } });
+  t("under the limit passes", r.status === 200);
+  r = await w.fetch(mk(ORI, { ...base, name: "x".repeat(6000) }), { DRY_RUN: "1" });
+  t("oversize body rejected", r.status === 413);
+  seen.length = 0;
+  await w.fetch(mk(ORI, { ...base, email: "bad" }), { DRY_RUN: "1", TURNSTILE_SECRET: "s" });
+  t("bad requests never reach the AI", !seen.some((u) => u.includes("anthropic")));
+}
 console.log(fails ? fails + " FAILED" : "ALL PASSED");
 process.exit(fails ? 1 : 0);

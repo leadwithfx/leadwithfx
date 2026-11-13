@@ -8,6 +8,9 @@
 //   FROM_EMAIL (a sender verified in Brevo, e.g. hello@leadwithfx.com)
 //   ALERT_EMAIL (where lead alerts go)   BREVO_LIST_ID (number, the pipeline list)
 //   Optional: MODEL, DRY_RUN=1 (builds the report but sends nothing)
+//   Abuse protection (each is optional and switches on when set):
+//     TURNSTILE_SECRET (secret)  Cloudflare Turnstile secret key: requires a human check token from the quiz page
+//     LIMITER (rate limit binding)  per-visitor limit, e.g. 3 requests per 60 seconds; see README
 
 const ALLOWED_ORIGINS = ["https://leadwithfx.com", "https://www.leadwithfx.com"];
 const BOOK_URL = "https://calendly.com/freddie-rx";
@@ -169,6 +172,20 @@ async function brevo(env, path, payload) {
   });
 }
 
+const MAX_BODY = 4096;
+
+export async function humanOk(env, token, ip) {
+  if (!env.TURNSTILE_SECRET) return true; // not switched on yet
+  if (typeof token !== "string" || token.length < 10 || token.length > 2048) return false;
+  try {
+    const form = new URLSearchParams({ secret: env.TURNSTILE_SECRET, response: token });
+    if (ip) form.set("remoteip", ip);
+    const r = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", { method: "POST", body: form });
+    const d = await r.json();
+    return !!(d && d.success);
+  } catch { return false; }
+}
+
 export default {
   async fetch(request, env) {
     const origin = request.headers.get("Origin") || "";
@@ -176,10 +193,21 @@ export default {
     if (request.method !== "POST") return json({ error: "method" }, 405, origin);
     if (!ALLOWED_ORIGINS.includes(origin)) return json({ error: "origin" }, 403, origin);
 
+    const ip = request.headers.get("CF-Connecting-IP") || "";
+    if (env.LIMITER) {
+      try { const { success } = await env.LIMITER.limit({ key: ip || origin }); if (!success) return json({ error: "slow" }, 429, origin); } catch { /* limiter unavailable: carry on */ }
+    }
+    const len = Number(request.headers.get("content-length") || 0);
+    if (len > MAX_BODY) return json({ error: "size" }, 413, origin);
     let body;
-    try { body = await request.json(); } catch { return json({ error: "json" }, 400, origin); }
+    try {
+      const raw = await request.text();
+      if (raw.length > MAX_BODY) return json({ error: "size" }, 413, origin);
+      body = JSON.parse(raw);
+    } catch { return json({ error: "json" }, 400, origin); }
     const req = validateRequest(body);
     if (!req) return json({ error: "request" }, 400, origin);
+    if (!(await humanOk(env, body.ts, ip))) return json({ error: "human" }, 403, origin);
 
     const a = analyse(req.nums);
     const ai = await aiReflection(env, req.nums);

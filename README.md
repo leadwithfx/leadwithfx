@@ -22,3 +22,8 @@ DNS at the registrar:
 - CNAME `www` leadwithfx.github.io
 
 Remove any registrar parking page or forwarding. DNS can take minutes to a few hours.
+
+## Copying and AI protection
+- `robots.txt` blocks known AI training and scraping bots; `noai, noimageai` robots tags and a `tdm-reservation` notice (`.well-known/tdmrep.json`) are on every page. These are requests: well-behaved bots obey them, bad ones don't.
+- `terms.html` states that the content can't be copied or used for AI training. Have an adviser read it, alongside the privacy page.
+- Quiz and Worker protection (spend limit, Turnstile, rate limit): see `worker/README.md`.
