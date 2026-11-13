@@ -21,14 +21,16 @@
       <img class="logo-img" src="logo-mark.svg" alt="" width="44" height="44">
       <span class="brand-name">Lead with FX</span>
     </a>
-    <nav class="nav-links" aria-label="Main">
+    <nav class="nav-links" id="nav-links" aria-label="Main">
       <a href="index.html#story">The Story</a>
       <a href="index.html#coaching">Coaching</a>
       <a href="index.html#method">How It Works</a>
+      <a href="index.html#about">About</a>
       <a href="quiz.html">Clarity Check</a>
       <a href="insights.html">Insights</a>
       <a class="btn btn-gold btn-sm" href="index.html#book">Let's Talk</a>
     </nav>
+    <button id="nav-toggle" class="nav-toggle" type="button" aria-expanded="false" aria-controls="nav-links" aria-label="Open menu"><span></span><span></span><span></span></button>
   </div>
 </header>
 
@@ -54,6 +56,7 @@
   <h2 id="r-title" tabindex="-1"></h2>
   <p id="r-body" class="q-lead"></p>
   <div class="r-box"><strong>Your next step</strong><p id="r-step"></p></div>
+  <div class="r-box r-fit"><strong id="r-fit-h"></strong><p id="r-fit-p"></p><p><a id="r-fit-a" class="r-fit-link" href="index.html#coaching">See how it works</a></p></div>
   <div id="r-ai" class="r-box r-ai" hidden><strong>A closer look at your answers</strong><p id="r-ai-text"></p><p class="r-ai-note">Written by AI from your answers only. It is not from Freddie, and it is not advice. Your answers are sent without your name or any contact details.</p></div>
   <div class="r-actions"><a class="btn btn-gold" href="https://calendly.com/freddie-rx" target="_blank" rel="noopener" id="r-book">Book a free intro call</a><button id="q-again" class="btn btn-outline" type="button">Retake the check</button></div>
   <p class="q-via">Want a first look at your strengths before we talk? Take the free <a href="https://www.viacharacter.org/account/register" target="_blank" rel="noopener" id="r-via">VIA Character Strengths Survey</a> (about 15 minutes, run by the VIA Institute, not by me), then bring your top strengths to our intro call.</p>
@@ -72,6 +75,7 @@
 var AI_ENDPOINT=""; /* set to your deployed Worker URL to switch on the AI summary */
 var Q=[
 {q:"Which best describes you?",o:["Tech leader or manager","Career changer","Early-career professional","Something else"],profile:1},
+{q:"Have you worked with a coach before?",o:["No, this would be my first time","Once or twice","Yes, several times"],profile:1},
 {q:"How clear are you on your next role or move?",o:["I have no real idea","A few options, but nothing feels right","I have a direction, but I'm not sure it's the right one","I know exactly what I want next"]},
 {q:"When you face an important career decision, you usually…",o:["Put it off","Go round in circles","Weigh it up, then decide with some doubt","Decide with confidence and act"]},
 {q:"How well do the people who matter know the value you bring?",o:["Hardly at all","Some of them","Most of them, but not the key decision makers","Clearly, including the key decision makers"]},
@@ -96,7 +100,7 @@ function show(el){[intro,run,res].forEach(function(x){x.hidden=x!==el})}
 function ping(name){try{if(window.goatcounter&&window.goatcounter.count)window.goatcounter.count({path:name,title:name,event:true})}catch(e){}}
 function render(){
   var q=Q[i];
-  $("q-count").textContent=q.profile?"About you":"Question "+i+" of "+(Q.length-1);
+  $("q-count").textContent=q.profile?"About you":"Question "+(i-1)+" of "+(Q.length-2);
   $("q-fill").style.width=((i)/Q.length*100)+"%";
   var pb=document.querySelector(".q-bar");pb.setAttribute("aria-valuenow",i);pb.setAttribute("aria-valuemax",Q.length);
   $("q-text").textContent=q.q;
@@ -130,10 +134,25 @@ function aiSummary(){
    .then(function(d){clearTimeout(t);if(d&&typeof d.summary==="string"&&d.summary.length>20&&d.summary.length<1500){txt.textContent=d.summary;ping("quiz-ai-summary-shown")}else{box.hidden=true}})
    .catch(function(){clearTimeout(t);box.hidden=true});
 }
+var FIT=[
+{h:"A good fit: Leadership Coaching",p:"You're leading people or programs and want to grow into the next level of impact, influence and clarity.",l:"Leadership"},
+{h:"A good fit: Career Coaching",p:"You're working out a change, a first step or a path that feels right, and want a clear plan to get there.",l:"Career"},
+{h:"A good fit: Career Coaching",p:"You're building the foundations of your career, and a clear direction early makes every later move easier.",l:"Career"},
+{h:"Where to start",p:"Leadership Coaching and Career Coaching both work one to one. On the intro call we'll work out which suits you.",l:"Not sure yet"}
+];
+var EXP=[
+"Coaching is new to you, which is fine. The intro call is a relaxed conversation and you don't need to prepare anything.",
+"You've tried coaching before, so on the intro call tell me what helped and what didn't. I'll shape the work around that.",
+"You know how coaching works, so on the intro call tell me what you'd want from a coach this time. That will help us see if we click."
+];
 function finish(){
-  var s=ans.slice(1).reduce(function(a,b){return a+b},0),r=R[R.length-1];
+  var s=ans.slice(2).reduce(function(a,b){return a+b},0),r=R[R.length-1];
   for(var k=0;k<R.length;k++){if(s<=R[k].max){r=R[k];break}}
   $("r-eyebrow").textContent=r.eyebrow;$("r-title").textContent=r.title;$("r-body").textContent=r.body;$("r-step").textContent=r.step;
+  var f=FIT[(ans[0]||4)-1];
+  $("r-fit-h").textContent=f.h;$("r-fit-p").textContent=f.p+" "+EXP[(ans[1]||1)-1];
+  var url="https://calendly.com/freddie-rx?a1="+encodeURIComponent("Clarity Check: "+r.title+". Profile: "+Q[0].o[(ans[0]||4)-1]+". Coaching before: "+Q[1].o[(ans[1]||1)-1]+".");
+  $("r-book").href=url;
   show(res);$("r-title").focus();window.scrollTo({top:0,behavior:"smooth"});
   ping("quiz-complete-"+r.title.toLowerCase().replace(/\s+/g,"-"));
   aiSummary();
@@ -144,4 +163,5 @@ $("r-via").addEventListener("click",function(){ping("quiz-via-click")});
 $("r-book").addEventListener("click",function(){ping("quiz-book-click")});
 })();
 </script>
+<script src="nav.js" defer></script>
 </body></html>
