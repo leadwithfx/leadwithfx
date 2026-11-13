@@ -343,8 +343,6 @@ p{margin:0}
 html{scroll-padding-top:84px}
 
 /* nav: tighter desktop bar, hamburger below 1180px */
-.nav-links{gap:16px;font-size:12.5px;letter-spacing:.05em}
-.nav-links a.btn{letter-spacing:.06em}
 @media (max-width:1340px){
   .nav-inner{gap:6px}
   .navjs .nav-inner{flex-wrap:nowrap}
@@ -359,36 +357,32 @@ html{scroll-padding-top:84px}
   .navjs .nav.open .nav-links a.btn{display:block;text-align:center;margin-top:14px;padding:16px 22px;font-size:14px}
 }
 
-/* coaching vs what I don't offer */
-
-
-.r-help{margin-top:16px}
-.diff-note{margin:0 auto 16px;font-size:21px;line-height:1.55;color:var(--navy);text-align:center;max-width:720px}
-.diff-cta{text-align:center;margin-top:28px}
+/* Home page notes and calls to action */
+.diff-note{margin:0 0 16px;font-size:21px;line-height:1.55;color:var(--navy);text-align:left;max-width:680px}
 .diff-gap{margin-top:36px}
-.hero-by{margin:4px 0 0;font-size:15px;letter-spacing:.06em;color:var(--on-navy);opacity:.9}
+.diff-cta{margin-top:28px;text-align:left}
+.time-note{margin:44px auto 0 0;max-width:720px;font-size:19px;line-height:1.55;color:var(--navy);text-align:left;text-wrap:balance}
+.hero-by{margin:4px 0 0;font-size:16px;letter-spacing:.01em;color:var(--on-navy);opacity:.9}
 .eyebrow.again{margin-top:48px}
 .about .eyebrow.again{margin-top:36px}
 .about-link{color:var(--navy);font-weight:700;text-decoration:underline}
-.time-note{text-wrap:balance;margin:44px auto 0;max-width:720px;text-align:center;font-size:19px;line-height:1.55;color:var(--navy)}
+.r-help{margin-top:16px}
 
-/* Warmer, less formal tone */
+/* Tone: sentence case, lighter headings, warmer sections */
 h1,h2,h3{font-weight:400}
 .nav-links{font-size:15px;font-weight:700;letter-spacing:.01em;text-transform:none;gap:24px}
 .nav-links a.btn,.btn-sm{letter-spacing:.01em;font-size:14px}
 .btn{letter-spacing:.01em;font-weight:700;font-size:16px}
 .label,.eyebrow{text-transform:none;letter-spacing:.02em;font-size:15px;font-weight:700}
 .includes{text-transform:none;letter-spacing:.02em;font-size:15px}
-.hero-by{letter-spacing:.01em;font-size:16px}
 .diff .section-title{text-align:left}
-.diff-note,.diff-note.diff-gap{text-align:left;margin-left:0;margin-right:0;max-width:680px}
-.diff-cta{text-align:left}
-.time-note{text-align:left;margin-left:0}
 .method{background:var(--sand);color:var(--navy)}
 .section-title.light,.method .section-title{color:var(--navy)}
 .step-lead{color:var(--navy)}
 .step p{color:var(--ink-soft)}
 .method .num{-webkit-text-stroke-color:var(--gold-text)}
+
+/* Hero with artwork or photo */
 .hero-split{flex-direction:row;align-items:center;justify-content:space-between;gap:48px;flex-wrap:wrap}
 .hero-copy{display:flex;flex-direction:column;gap:20px;align-items:flex-start;flex:1 1 520px;min-width:0}
 .hero-photo{width:340px;max-width:100%;height:auto;border-radius:20px;box-shadow:0 18px 40px rgba(0,0,0,.28);border:4px solid rgba(255,255,255,.08)}
