@@ -384,3 +384,8 @@ h1,h2,h3{font-weight:400}
 .diff-note,.diff-note.diff-gap{text-align:left;margin-left:0;margin-right:0;max-width:680px}
 .diff-cta{text-align:left}
 .time-note{text-align:left;margin-left:0}
+.method{background:var(--sand);color:var(--navy)}
+.section-title.light,.method .section-title{color:var(--navy)}
+.step-lead{color:var(--navy)}
+.step p{color:var(--ink-soft)}
+.method .num{-webkit-text-stroke-color:var(--gold-text)}
