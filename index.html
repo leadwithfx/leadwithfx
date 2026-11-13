@@ -34,7 +34,7 @@
       <img class="logo-img" src="logo-mark.svg" alt="" width="44" height="44">
       <span class="brand-name">Lead with FX</span>
     </a>
-    <nav class="nav-links" aria-label="Main">
+    <nav class="nav-links" id="nav-links" aria-label="Main">
       <a href="#story">The Story</a>
       <a href="#coaching">Coaching</a>
       <a href="#method">How It Works</a>
@@ -43,6 +43,7 @@
       <a href="insights.html">Insights</a>
       <a class="btn btn-gold btn-sm" href="#book">Let's Talk</a>
     </nav>
+    <button id="nav-toggle" class="nav-toggle" type="button" aria-expanded="false" aria-controls="nav-links" aria-label="Open menu"><span></span><span></span><span></span></button>
   </div>
 </header>
 
@@ -315,5 +316,6 @@
     }).catch(function(){});
 })();
 </script>
+<script src="nav.js" defer></script>
 </body>
 </html>
