@@ -371,3 +371,16 @@ html{scroll-padding-top:84px}
 .about .eyebrow.again{margin-top:36px}
 .about-link{color:var(--navy);font-weight:700;text-decoration:underline}
 .time-note{text-wrap:balance;margin:44px auto 0;max-width:720px;text-align:center;font-size:19px;line-height:1.55;color:var(--navy)}
+
+/* Warmer, less formal tone */
+h1,h2,h3{font-weight:400}
+.nav-links{font-size:15px;font-weight:700;letter-spacing:.01em;text-transform:none;gap:24px}
+.nav-links a.btn,.btn-sm{letter-spacing:.01em;font-size:14px}
+.btn{letter-spacing:.01em;font-weight:700;font-size:16px}
+.label,.eyebrow{text-transform:none;letter-spacing:.02em;font-size:15px;font-weight:700}
+.includes{text-transform:none;letter-spacing:.02em;font-size:15px}
+.hero-by{letter-spacing:.01em;font-size:16px}
+.diff .section-title{text-align:left}
+.diff-note,.diff-note.diff-gap{text-align:left;margin-left:0;margin-right:0;max-width:680px}
+.diff-cta{text-align:left}
+.time-note{text-align:left;margin-left:0}
