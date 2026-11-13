@@ -158,11 +158,6 @@ p{margin:0}
 
 .diff{background:var(--sand);padding:88px 0}
 .diff .section-title{margin-bottom:40px}
-.diff-grid{display:flex;flex-wrap:wrap;gap:24px}
-.diff-card{flex:1 1 260px;min-width:0;background:#fff;border:1px solid var(--line);border-radius:16px;padding:32px;display:flex;flex-direction:column;gap:10px}
-.diff-card h3{font-size:28px;color:var(--navy)}
-.diff-card p{font-size:17px;line-height:1.6;color:var(--ink-soft);margin:0}
-.diff-main{border-top:6px solid var(--gold)}
 @media (max-width:900px){.diff{padding:64px 0}}
 
 /* motion */
@@ -266,7 +261,6 @@ p{margin:0}
 .creds{margin-top:16px;gap:16px}
 .cred{padding:22px}
 .quote{padding:26px}
-.diff-card{padding:24px}
 .faq summary{padding:16px 0}
 .faq details p{padding:0 0 16px}
 .footer-inner{padding-top:24px;padding-bottom:24px}
@@ -372,9 +366,7 @@ html{scroll-padding-top:84px}
 }
 
 /* coaching vs what I don't offer */
-.diff-tag{align-self:flex-start;font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;padding:5px 10px;border-radius:999px;background:#EDE8D8;color:#5b5648}
-.diff-tag.diff-yes{background:var(--navy);color:#fff}
-.diff-no{background:transparent;border:1.5px dashed #cfc7b2}
-.diff-no h3,.diff-no p{color:#6b665a}
-.diff-note{margin:28px 0 0;font-size:19px;line-height:1.5;color:var(--navy);text-align:center;max-width:720px;margin-left:auto;margin-right:auto}
 
+
+.r-want{margin-top:16px}
+.diff-note{margin:0 auto;font-size:21px;line-height:1.55;color:var(--navy);text-align:center;max-width:720px}

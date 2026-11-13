@@ -39,7 +39,7 @@
 <div id="quiz-intro" class="q-panel">
   <div class="rule"></div>
   <h1>Where are you on your path?</h1>
-  <p class="q-lead" id="q-lead">Ten quick questions. Three minutes. You'll see which kind of coaching fits you<span id="q-rep"> and you can ask for a full report by email</span>. Your answers stay in your browser<span id="q-rep2"> unless you ask for that report</span>.</p>
+  <p class="q-lead" id="q-lead">Ten quick questions, plus a few about you. Three minutes. You'll see which kind of coaching fits you<span id="q-rep"> and you can ask for a full report by email</span>. Your answers stay in your browser<span id="q-rep2"> unless you ask for that report</span>.</p>
   <button id="q-start" class="btn btn-gold" type="button">Start the Clarity Check</button>
 </div>
 
@@ -58,6 +58,7 @@
   <p id="r-body" class="q-lead" hidden></p>
   <div id="r-stepbox" class="r-box" hidden><strong>Your next step</strong><p id="r-step"></p></div>
   <div class="r-box r-fit"><strong id="r-fit-h"></strong><p id="r-fit-p"></p><p><a id="r-fit-a" class="r-fit-link" href="index.html#coaching">See how it works</a></p></div>
+  <div class="r-box r-want"><strong id="r-want-h"></strong><p id="r-want-p"></p></div>
   <div class="r-box r-offer" id="r-offer"><strong>Where should I send your Clarity Report?</strong>
     <ul>
       <li>Your overall result and your next step</li>
@@ -111,6 +112,7 @@ var REPORT_ENDPOINT="";var TEST=/[?&]test=1(&|$)/.test(location.search),LIVE=!!R
 var Q=[
 {q:"Which best describes you?",o:["Tech leader or manager","Career changer","Early-career professional","Something else"],profile:1},
 {q:"Have you worked with a coach before?",o:["No, this would be my first time","Once or twice","Yes, several times"],profile:1},
+{q:"What do you most want from this?",o:["Someone to think it through with me","Someone to tell me what to do","Someone to do it for me","I'm not sure yet"],profile:1},
 {q:"How clear are you on your next role or move?",o:["I have no real idea","A few options, but nothing feels right","I have a direction, but I'm not sure it's the right one","I know exactly what I want next"]},
 {q:"When you face an important career decision, you usually…",o:["Put it off","Go round in circles","Weigh it up, then decide with some doubt","Decide with confidence and act"]},
 {q:"How well do the people who matter know the value you bring?",o:["Hardly at all","Some of them","Most of them, but not the key decision makers","Clearly, including the key decision makers"]},
@@ -135,7 +137,7 @@ function show(el){[intro,run,res,rep,sent].forEach(function(x){x.hidden=x!==el})
 function ping(name){try{if(window.goatcounter&&window.goatcounter.count)window.goatcounter.count({path:name,title:name,event:true})}catch(e){}}
 function render(){
   var q=Q[i];
-  $("q-count").textContent=q.profile?"About you":"Question "+(i-1)+" of "+(Q.length-2);
+  $("q-count").textContent=q.profile?"About you":"Question "+(i-2)+" of "+(Q.length-3);
   $("q-fill").style.width=((i)/Q.length*100)+"%";
   var pb=document.querySelector(".q-bar");pb.setAttribute("aria-valuenow",i);pb.setAttribute("aria-valuemax",Q.length);
   $("q-text").textContent=q.q;
@@ -164,17 +166,25 @@ var FIT=[
 {h:"A good fit: Career Coaching",p:"You're building the foundations of your career, and a clear direction early makes every later move easier.",l:"Career"},
 {h:"Where to start",p:"Leadership Coaching and Career Coaching both work one to one. On the intro call we'll work out which suits you.",l:"Not sure yet"}
 ];
+var WANT=[
+{h:"This is what coaching is",p:"You said you'd like someone to think it through with. That's coaching: you set the agenda, I ask the questions, and you leave with your own answers and a clear next step."},
+{h:"What I offer, and what I don't",p:"You said you'd like someone to tell you what to do. That's mentoring, and it isn't what I offer. I help you find your own answers. If you want advice from someone who has done it before, a mentor in your field may suit you better. If you'd like to find your own answers with support, the intro call is a good place to test that."},
+{h:"What I offer, and what I don't",p:"You said you'd like someone to do it for you. That's consulting, and it isn't what I offer. I won't do the work for you; I help you decide and act on it yourself. If you want it done, a specialist or consultant is the better choice. If what you need is clarity on what to do and the push to do it, coaching can help."},
+{h:"Coaching, mentoring and consulting",p:"Coaching helps you find your own answers. Mentoring is advice from someone who has been there. Consulting is an expert doing the work for you. I coach. On the intro call we can work out which of the three you need."}
+];
 var EXP=[
 "Coaching is new to you, which is fine. The intro call is a relaxed conversation and you don't need to prepare anything.",
 "You've tried coaching before, so on the intro call tell me what helped and what didn't. I'll shape the work around that.",
 "You know how coaching works, so on the intro call tell me what you'd want from a coach this time. That will help us see if we click."
 ];
 function finish(){
-  var s=ans.slice(2).reduce(function(a,b){return a+b},0),r=R[R.length-1];
+  var s=ans.slice(3).reduce(function(a,b){return a+b},0),r=R[R.length-1];
   for(var k=0;k<R.length;k++){if(s<=R[k].max){r=R[k];break}}
   var f=FIT[(ans[0]||4)-1];
   $("r-fit-h").textContent=f.h;$("r-fit-p").textContent=f.p+" "+EXP[(ans[1]||1)-1];
-  var url="https://calendly.com/freddie-rx?a1="+encodeURIComponent("Clarity Check: "+r.title+". Profile: "+Q[0].o[(ans[0]||4)-1]+". Coaching before: "+Q[1].o[(ans[1]||1)-1]+".");
+  var w=WANT[(ans[2]||4)-1];
+  $("r-want-h").textContent=w.h;$("r-want-p").textContent=w.p;
+  var url="https://calendly.com/freddie-rx?a1="+encodeURIComponent("Clarity Check: "+r.title+". Profile: "+Q[0].o[(ans[0]||4)-1]+". Coaching before: "+Q[1].o[(ans[1]||1)-1]+". Wants: "+Q[2].o[(ans[2]||4)-1]+".");
   $("r-book").href=url;$("s-book").href=url;
   var full=!LIVE;
   $("r-offer").hidden=full;$("r-body").hidden=!full;$("r-stepbox").hidden=!full;

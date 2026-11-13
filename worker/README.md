@@ -16,7 +16,7 @@ Until you set `REPORT_ENDPOINT` in `quiz.html`, the form runs in **test mode** a
 2. **Brevo account** (brevo.com, free plan; check current limits).
    - Senders, Domains and Dedicated IPs > Domains > add leadwithfx.com and **authenticate it**: Brevo shows a few DNS records (SPF, DKIM, DMARC). Add them at GoDaddy (DNS > Add), the same place as the A records. Wait for Brevo to show the domain as verified.
    - Create a sender such as hello@leadwithfx.com. (Do not use a Gmail address: it will be rejected or land in spam.)
-   - Contacts > Settings > Contact attributes: create text attributes `FIRSTNAME`, `BAND`, `PROFILE`, `COACHED_BEFORE`, `LOWEST_THEME`, `CONSENT_DATE`, `STAGE`.
+   - Contacts > Settings > Contact attributes: create text attributes `FIRSTNAME`, `BAND`, `PROFILE`, `COACHED_BEFORE`, `WANTS`, `LOWEST_THEME`, `CONSENT_DATE`, `STAGE`.
    - Contacts > Lists: create a list called "Pipeline" and note its numeric ID.
    - SMTP and API > API keys: create a key.
 3. **Cloudflare Worker.** cloudflare.com (free): Workers & Pages > Create > Worker, name it `clarity-report`, paste in `worker/index.js`, Deploy.
