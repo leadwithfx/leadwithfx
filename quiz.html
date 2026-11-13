@@ -3,6 +3,9 @@
 <title>Clarity Check | Lead with FX</title>
 <meta name="description" content="A two-minute check to see where you are on your path, and what your next step could be.">
 <meta charset="utf-8">
+<meta name="tdm-reservation" content="1">
+<meta name="tdm-policy" content="https://leadwithfx.com/terms.html">
+<meta name="robots" content="index,follow,noai,noimageai">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#12294D">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
@@ -84,6 +87,7 @@
     <label class="q-opt rp-ck"><input type="checkbox" id="rp-c1"><span>Send my Clarity Report to this address. (required)</span></label>
     <label class="q-opt rp-ck"><input type="checkbox" id="rp-c2"><span>Yes, Freddie can contact me personally about coaching. No newsletter. (optional)</span></label>
     <p class="q-fine">I use your email to send this report. If you tick the second box, I'll also keep your details so I can follow up with you one to one. You can ask me to delete them at any time. See the <a href="privacy.html#clarity-report">privacy page</a>.</p>
+    <div id="rp-ts" class="rp-ts"></div>
     <p id="rp-err" class="rp-err" role="alert" hidden></p>
     <div class="q-nav"><button id="rp-back" class="btn btn-outline" type="button">Back</button><button id="rp-send" class="btn btn-gold" type="submit">Send my report</button></div>
   </form>
@@ -101,13 +105,13 @@
 <footer class="footer">
   <div class="wrap footer-inner">
     <div class="footer-brand"><img class="logo-img" src="logo-mark.svg" alt="" width="40" height="40"><span>Copyright 2026 Lead with FX Coaching Practice. All rights reserved.</span></div>
-    <nav class="footer-links" aria-label="Footer"><a href="index.html">Home</a><a href="quiz.html">Clarity Check</a><a href="insights.html">Insights</a><a href="privacy.html">Privacy</a><a href="mailto:leadwithfx@gmail.com">leadwithfx@gmail.com</a></nav>
+    <nav class="footer-links" aria-label="Footer"><a href="index.html">Home</a><a href="quiz.html">Clarity Check</a><a href="insights.html">Insights</a><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a><a href="mailto:leadwithfx@gmail.com">leadwithfx@gmail.com</a></nav>
   </div>
 </footer>
 
 <script>
 (function(){
-var REPORT_ENDPOINT="";var TEST=/[?&]test=1(&|$)/.test(location.search),LIVE=!!REPORT_ENDPOINT||TEST; /* set to your deployed Worker URL to switch on emailed reports; empty = test mode, nothing is sent */
+var REPORT_ENDPOINT="";var TURNSTILE_SITEKEY=""; /* optional: Cloudflare Turnstile site key (public). Empty = no human check */ var TEST=/[?&]test=1(&|$)/.test(location.search),LIVE=!!REPORT_ENDPOINT||TEST; /* set to your deployed Worker URL to switch on emailed reports; empty = test mode, nothing is sent */
 var Q=[
 {q:"Which best describes you?",o:["Tech leader or manager","Career changer","Early-career professional","Something else"],profile:1},
 {q:"Have you worked with a coach before?",o:["No, this would be my first time","Once or twice","Yes, several times"],profile:1},
@@ -195,9 +199,18 @@ function finish(){
 $("q-start").addEventListener("click",function(){i=0;ans=[];resetReport();show(run);render();ping("quiz-start")});
 $("q-again").addEventListener("click",function(){i=0;ans=[];resetReport();show(intro)});
 var EMAIL_RE=/^[^\s@<>"]+@[^\s@<>"]+\.[^\s@<>"]+$/;
-function resetReport(){["rp-name","rp-email","rp-hp"].forEach(function(k){$(k).value=""});$("rp-c1").checked=false;$("rp-c2").checked=false;$("rp-err").hidden=true;$("rp-send").disabled=false;$("rp-send").textContent="Send my report"}
+function resetReport(){try{resetTs()}catch(e){}["rp-name","rp-email","rp-hp"].forEach(function(k){$(k).value=""});$("rp-c1").checked=false;$("rp-c2").checked=false;$("rp-err").hidden=true;$("rp-send").disabled=false;$("rp-send").textContent="Send my report"}
 function rpError(msg,id){var e=$("rp-err");e.textContent=msg;e.hidden=false;if(id)$(id).focus()}
-$("r-get").addEventListener("click",function(){show(rep);$("rp-title").focus();window.scrollTo({top:0,behavior:"smooth"});ping("report-open")});
+var tsId=null,tsTok="";
+function loadTs(){
+  if(!TURNSTILE_SITEKEY||!REPORT_ENDPOINT)return;
+  function draw(){if(tsId===null&&window.turnstile){tsId=window.turnstile.render("#rp-ts",{sitekey:TURNSTILE_SITEKEY,callback:function(t){tsTok=t},"expired-callback":function(){tsTok=""},"error-callback":function(){tsTok=""}})}}
+  if(window.turnstile){draw();return}
+  if(document.getElementById("ts-js"))return;
+  var s=document.createElement("script");s.id="ts-js";s.src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";s.async=true;s.onload=draw;document.head.appendChild(s)
+}
+function resetTs(){tsTok="";if(tsId!==null&&window.turnstile)window.turnstile.reset(tsId)}
+$("r-get").addEventListener("click",function(){loadTs();show(rep);$("rp-title").focus();window.scrollTo({top:0,behavior:"smooth"});ping("report-open")});
 $("rp-back").addEventListener("click",function(){show(res);$("r-title").focus()});
 $("rp-form").addEventListener("input",function(){$("rp-err").hidden=true});
 $("rp-form").addEventListener("submit",function(e){
@@ -209,12 +222,13 @@ $("rp-form").addEventListener("submit",function(e){
   var contact=$("rp-c2").checked;
   function done(test){$("sent-test").hidden=!test;show(sent);$("sent-title").focus();window.scrollTo({top:0,behavior:"smooth"});ping("report-sent");if(contact)ping("report-contact-optin")}
   if(!REPORT_ENDPOINT){done(true);return}
+  if(TURNSTILE_SITEKEY&&!tsTok)return rpError("Please wait a moment for the quick check above to finish, then try again.");
   var btn=$("rp-send");btn.disabled=true;btn.textContent="Sending\u2026";
   var ctrl=window.AbortController?new AbortController():null,t=setTimeout(function(){if(ctrl)ctrl.abort()},20000);
-  fetch(REPORT_ENDPOINT,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({a:ans,name:name,email:email,consent_report:true,consent_contact:contact,hp:$("rp-hp").value}),signal:ctrl?ctrl.signal:undefined})
-   .then(function(r){return r.ok?r.json():Promise.reject()})
+  fetch(REPORT_ENDPOINT,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({a:ans,name:name,email:email,consent_report:true,consent_contact:contact,hp:$("rp-hp").value,ts:tsTok}),signal:ctrl?ctrl.signal:undefined})
+   .then(function(r){if(r.status===429){var e=new Error("slow");e.slow=1;throw e}return r.ok?r.json():Promise.reject()})
    .then(function(d){clearTimeout(t);if(d&&d.ok){done(false)}else{return Promise.reject()}})
-   .catch(function(){clearTimeout(t);btn.disabled=false;btn.textContent="Send my report";rpError("Couldn't send your report. Check your email address and try again, or book a call instead.")});
+   .catch(function(err){clearTimeout(t);resetTs();btn.disabled=false;btn.textContent="Send my report";rpError(err&&err.slow?"That's a lot of requests from this connection. Please wait a minute and try again.":"Couldn't send your report. Check your email address and try again, or book a call instead.")});
 });
 $("s-assess").addEventListener("click",function(){ping("quiz-assess-click")});
 $("r-book").addEventListener("click",function(){ping("quiz-book-click")});

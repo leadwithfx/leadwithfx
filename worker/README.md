@@ -31,3 +31,16 @@ Until you set `REPORT_ENDPOINT` in `quiz.html`, the form runs in **test mode** a
 - `node worker/test.mjs` runs 23 local tests (validation, scoring, escaping, consent paths, failure handling). They use a mocked network, so they do not prove the live Brevo or Anthropic calls: do the test report in step 6.
 - If you change the quiz questions or options, update `QUESTIONS` in `worker/index.js` to match, and the `THEMES` question numbers if the order changes.
 - Follow-ups to pipeline contacts should be one to one, from you, with a line on how to stop hearing from you. Check final wording with your adviser.
+
+## Protecting the Worker from abuse
+The Worker already checks the site address (origin), caps the request size at 4 KB, validates every answer, and has a hidden honeypot field. Three more layers switch on when you set them up (nothing breaks if you skip them):
+
+1. **Anthropic spend limit** (do this first): console.anthropic.com > Limits > set a monthly cap, for example $10. This is your worst-case cost.
+2. **Cloudflare Turnstile** (free human check):
+   - Cloudflare dashboard > Turnstile > Add widget. Hostname `leadwithfx.com`, mode Managed (invisible when possible).
+   - Copy the **site key** into `TURNSTILE_SITEKEY` near the top of the script in `quiz.html` (it is public).
+   - Add the **secret key** to the Worker as a secret named `TURNSTILE_SECRET`.
+   - Until both are set, the check is off.
+3. **Per-visitor limit** (Workers rate limiting): in the Worker's wrangler config or dashboard, add a Rate Limiting binding named `LIMITER`, for example 3 requests per 60 seconds. If you deploy by pasting code in the dashboard, add the binding under Settings > Bindings. Visitors who go over get a "please wait a minute" message.
+
+Optional later: move DNS from GoDaddy to Cloudflare (free). That lets Cloudflare's bot protection, AI-crawler blocking and rate limits sit in front of the whole site.
