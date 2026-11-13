@@ -130,7 +130,7 @@ export function buildReport(name, nums, a, reflection, aiWritten) {
     sec("A closer look at your answers", reflHtml + (aiWritten ? '<p style="margin:6px 0 0;font-size:12px;color:#6b7280">Written by AI from your answers only. It is not from Freddie, and it is not advice.</p>' : "")) +
     sec("Your 90-day starter plan: " + a.low.n, plan) +
     sec("Using your strengths", '<p style="margin:0 0 10px;font-size:14px;line-height:1.6;color:#4a5568">Take this free strengths assessment (about 15 minutes). It is run by an independent organisation, not by me. When you have your top strengths, look for the one that could lift your lowest theme, ' + a.low.n.toLowerCase() + ", and bring them to our intro call.</p>" + btn(ASSESS_URL, "Take the assessment")) +
-    '<div style="margin-top:22px">' + btn(BOOK_URL, "Book a free intro call") + "</div>" +
+    '<div style="margin-top:22px">' + btn(BOOK_URL, "Book a free chat") + "</div>" +
     '<p style="margin:22px 0 0;font-size:12px;line-height:1.5;color:#6b7280">You got this one-off email because you asked for your report on leadwithfx.com. This is a reflection tool, not an assessment or a diagnosis. Freddie Xavier, Lead with FX, leadwithfx@gmail.com</p>' +
     "</div></div>";
   const text = ["Hi " + name + ", here's your Clarity Report", "", a.band.title + ". " + a.band.body, "Your next step. " + a.band.step, "",
@@ -138,7 +138,7 @@ export function buildReport(name, nums, a, reflection, aiWritten) {
     "A CLOSER LOOK AT YOUR ANSWERS", reflection + (aiWritten ? "\n(Written by AI from your answers only. It is not from Freddie, and it is not advice.)" : ""), "",
     "YOUR 90-DAY STARTER PLAN: " + a.low.n.toUpperCase(), ...a.low.plan.map((p, i) => (i + 1) + ". " + p), "",
     "USING YOUR STRENGTHS", "Take this free strengths assessment (about 15 minutes), run by an independent organisation, not by me: " + ASSESS_URL, "",
-    "Book a free intro call: " + BOOK_URL, "",
+    "Book a free chat: " + BOOK_URL, "",
     "You got this one-off email because you asked for your report on leadwithfx.com. Freddie Xavier, Lead with FX, leadwithfx@gmail.com"].join("\n");
   return { subject: "Your Clarity Report, " + name, html, text };
 }
