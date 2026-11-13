@@ -38,7 +38,7 @@
 <div id="quiz-intro" class="q-panel">
   <div class="rule"></div>
   <h1>Where are you on your path?</h1>
-  <p class="q-lead" id="q-lead">Ten quick questions. Three minutes. You'll see where you are right now and what your next step could be. Your answers stay in your browser.</p>
+  <p class="q-lead" id="q-lead">Ten quick questions. Three minutes. You'll see which kind of coaching fits you, and you can ask for a full report by email. Your answers stay in your browser unless you ask for that report.</p>
   <button id="q-start" class="btn btn-gold" type="button">Start the Clarity Check</button>
 </div>
 
@@ -52,15 +52,47 @@
 </div>
 
 <div id="quiz-result" class="q-panel" hidden aria-live="polite">
-  <p class="q-eyebrow" id="r-eyebrow"></p>
-  <h2 id="r-title" tabindex="-1"></h2>
-  <p id="r-body" class="q-lead"></p>
-  <div class="r-box"><strong>Your next step</strong><p id="r-step"></p></div>
+  <p class="q-eyebrow">Your Clarity Check</p>
+  <h2 id="r-title" tabindex="-1">Thanks for finishing it</h2>
   <div class="r-box r-fit"><strong id="r-fit-h"></strong><p id="r-fit-p"></p><p><a id="r-fit-a" class="r-fit-link" href="index.html#coaching">See how it works</a></p></div>
-  <div id="r-ai" class="r-box r-ai" hidden><strong>A closer look at your answers</strong><p id="r-ai-text"></p><p class="r-ai-note">Written by AI from your answers only. It is not from Freddie, and it is not advice. Your answers are sent without your name or any contact details.</p></div>
-  <div class="r-actions"><a class="btn btn-gold" href="https://calendly.com/freddie-rx" target="_blank" rel="noopener" id="r-book">Book a free intro call</a><button id="q-again" class="btn btn-outline" type="button">Retake the check</button></div>
-  <p class="q-via">Want a first look at your strengths before we talk? Take the free <a href="https://www.viacharacter.org/account/register" target="_blank" rel="noopener" id="r-via">VIA Character Strengths Survey</a> (about 15 minutes, run by the VIA Institute, not by me), then bring your top strengths to our intro call.</p>
+  <div class="r-box r-offer"><strong>Where should I send your Clarity Report?</strong>
+    <ul>
+      <li>Your overall result and your next step</li>
+      <li>Your results across five themes: clarity, visibility, accountability, momentum and influence</li>
+      <li>A short personal reflection written from your answers</li>
+      <li>A 90-day starter plan</li>
+      <li>A next step for your strengths: a free strengths assessment, with a guide to using your results alongside your five themes</li>
+    </ul>
+    <p><button id="r-get" class="btn btn-gold" type="button">Email me my report</button><span class="r-small">30 seconds. One email.</span></p>
+  </div>
+  <div class="r-actions"><a class="btn btn-outline" href="https://calendly.com/freddie-rx" target="_blank" rel="noopener" id="r-book">Book a free intro call</a><button id="q-again" class="btn btn-outline" type="button">Retake the check</button></div>
   <p class="q-fine">This is a reflection tool, not an assessment or a diagnosis.</p>
+</div>
+
+<div id="quiz-report" class="q-panel" hidden>
+  <p class="q-eyebrow">Your Clarity Report</p>
+  <h2 id="rp-title" tabindex="-1">Where should I send it?</h2>
+  <form id="rp-form" class="rp-form" novalidate>
+    <label for="rp-name">First name</label>
+    <input id="rp-name" type="text" autocomplete="given-name" maxlength="60">
+    <label for="rp-email">Email</label>
+    <input id="rp-email" type="email" inputmode="email" autocomplete="email" maxlength="254">
+    <input id="rp-hp" class="hp" type="text" tabindex="-1" autocomplete="off" aria-hidden="true">
+    <label class="q-opt rp-ck"><input type="checkbox" id="rp-c1"><span>Send my Clarity Report to this address. (required)</span></label>
+    <label class="q-opt rp-ck"><input type="checkbox" id="rp-c2"><span>Yes, Freddie can contact me personally about coaching. No newsletter. (optional)</span></label>
+    <p class="q-fine">I use your email to send this report. If you tick the second box, I'll also keep your details so I can follow up with you one to one. You can ask me to delete them at any time. See the <a href="privacy.html#clarity-report">privacy page</a>.</p>
+    <p id="rp-err" class="rp-err" role="alert" hidden></p>
+    <div class="q-nav"><button id="rp-back" class="btn btn-outline" type="button">Back</button><button id="rp-send" class="btn btn-gold" type="submit">Send my report</button></div>
+  </form>
+</div>
+
+<div id="quiz-sent" class="q-panel" hidden aria-live="polite">
+  <p class="q-eyebrow">Done</p>
+  <h2 id="sent-title" tabindex="-1">Your report is on its way</h2>
+  <p class="q-lead">Check your inbox in the next few minutes. If it isn't there, look in spam or promotions.</p>
+  <p id="sent-test" class="q-fine" hidden>Test mode: nothing was sent.</p>
+  <div class="r-box"><strong>A first look at your strengths</strong><p>Take this free strengths assessment (about 15 minutes), then bring your top strengths to our intro call. It's run by an independent organisation, not by me.</p><p><a class="btn btn-gold" href="https://www.viacharacter.org/account/register" target="_blank" rel="noopener noreferrer" id="s-assess">Take the assessment</a></p></div>
+  <div class="r-actions"><a class="btn btn-gold" href="https://calendly.com/freddie-rx" target="_blank" rel="noopener" id="s-book">Book a free intro call</a><a class="btn btn-outline" href="index.html">Back to the site</a></div>
 </div>
 </div></main>
 <footer class="footer">
@@ -72,7 +104,7 @@
 
 <script>
 (function(){
-var AI_ENDPOINT=""; /* set to your deployed Worker URL to switch on the AI summary */
+var REPORT_ENDPOINT=""; /* set to your deployed Worker URL to switch on emailed reports; empty = test mode, nothing is sent */
 var Q=[
 {q:"Which best describes you?",o:["Tech leader or manager","Career changer","Early-career professional","Something else"],profile:1},
 {q:"Have you worked with a coach before?",o:["No, this would be my first time","Once or twice","Yes, several times"],profile:1},
@@ -93,10 +125,9 @@ var R=[
 {max:40,eyebrow:"Step 03",title:"Keep moving",body:"You have clarity and momentum. The risk now is drifting, or plateauing without noticing, because nobody is checking your direction.",step:"Add regular check-ins and honest accountability, and plan for the next level before you need it."}
 ];
 var $=function(i){return document.getElementById(i)};
-var intro=$("quiz-intro"),run=$("quiz-run"),res=$("quiz-result"),form=$("q-form"),opts=$("q-options"),nextB=$("q-next"),back=$("q-back");
+var intro=$("quiz-intro"),run=$("quiz-run"),res=$("quiz-result"),rep=$("quiz-report"),sent=$("quiz-sent"),form=$("q-form"),opts=$("q-options"),nextB=$("q-next"),back=$("q-back");
 var i=0,ans=[];
-if(AI_ENDPOINT){$("q-lead").textContent="Ten quick questions. Three minutes. You'll see where you are right now and what your next step could be. Your answers aren't stored. At the end they're sent, without your name or any contact details, to an AI service that writes a short reflection for you.";}
-function show(el){[intro,run,res].forEach(function(x){x.hidden=x!==el})}
+function show(el){[intro,run,res,rep,sent].forEach(function(x){x.hidden=x!==el})}
 function ping(name){try{if(window.goatcounter&&window.goatcounter.count)window.goatcounter.count({path:name,title:name,event:true})}catch(e){}}
 function render(){
   var q=Q[i];
@@ -123,17 +154,6 @@ form.addEventListener("submit",function(e){
   if(i<Q.length-1){i++;render()}else{finish()}
 });
 back.addEventListener("click",function(){if(i>0){i--;render()}});
-function aiSummary(){
-  var box=$("r-ai"),txt=$("r-ai-text");
-  box.hidden=true;txt.textContent="";
-  if(!AI_ENDPOINT||!window.fetch)return;
-  box.hidden=false;txt.textContent="Writing a short reflection from your answers\u2026";
-  var ctrl=window.AbortController?new AbortController():null,t=setTimeout(function(){if(ctrl)ctrl.abort()},15000);
-  fetch(AI_ENDPOINT,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({a:ans}),signal:ctrl?ctrl.signal:undefined})
-   .then(function(r){return r.ok?r.json():Promise.reject()})
-   .then(function(d){clearTimeout(t);if(d&&typeof d.summary==="string"&&d.summary.length>20&&d.summary.length<1500){txt.textContent=d.summary;ping("quiz-ai-summary-shown")}else{box.hidden=true}})
-   .catch(function(){clearTimeout(t);box.hidden=true});
-}
 var FIT=[
 {h:"A good fit: Leadership Coaching",p:"You're leading people or programs and want to grow into the next level of impact, influence and clarity.",l:"Leadership"},
 {h:"A good fit: Career Coaching",p:"You're working out a change, a first step or a path that feels right, and want a clear plan to get there.",l:"Career"},
@@ -148,18 +168,38 @@ var EXP=[
 function finish(){
   var s=ans.slice(2).reduce(function(a,b){return a+b},0),r=R[R.length-1];
   for(var k=0;k<R.length;k++){if(s<=R[k].max){r=R[k];break}}
-  $("r-eyebrow").textContent=r.eyebrow;$("r-title").textContent=r.title;$("r-body").textContent=r.body;$("r-step").textContent=r.step;
   var f=FIT[(ans[0]||4)-1];
   $("r-fit-h").textContent=f.h;$("r-fit-p").textContent=f.p+" "+EXP[(ans[1]||1)-1];
   var url="https://calendly.com/freddie-rx?a1="+encodeURIComponent("Clarity Check: "+r.title+". Profile: "+Q[0].o[(ans[0]||4)-1]+". Coaching before: "+Q[1].o[(ans[1]||1)-1]+".");
-  $("r-book").href=url;
+  $("r-book").href=url;$("s-book").href=url;
   show(res);$("r-title").focus();window.scrollTo({top:0,behavior:"smooth"});
   ping("quiz-complete-"+r.title.toLowerCase().replace(/\s+/g,"-"));
-  aiSummary();
 }
-$("q-start").addEventListener("click",function(){i=0;ans=[];show(run);render();ping("quiz-start")});
-$("q-again").addEventListener("click",function(){i=0;ans=[];show(intro)});
-$("r-via").addEventListener("click",function(){ping("quiz-via-click")});
+$("q-start").addEventListener("click",function(){i=0;ans=[];resetReport();show(run);render();ping("quiz-start")});
+$("q-again").addEventListener("click",function(){i=0;ans=[];resetReport();show(intro)});
+var EMAIL_RE=/^[^\s@<>"]+@[^\s@<>"]+\.[^\s@<>"]+$/;
+function resetReport(){["rp-name","rp-email","rp-hp"].forEach(function(k){$(k).value=""});$("rp-c1").checked=false;$("rp-c2").checked=false;$("rp-err").hidden=true;$("rp-send").disabled=false;$("rp-send").textContent="Send my report"}
+function rpError(msg,id){var e=$("rp-err");e.textContent=msg;e.hidden=false;if(id)$(id).focus()}
+$("r-get").addEventListener("click",function(){show(rep);$("rp-title").focus();window.scrollTo({top:0,behavior:"smooth"});ping("report-open")});
+$("rp-back").addEventListener("click",function(){show(res);$("r-title").focus()});
+$("rp-form").addEventListener("input",function(){$("rp-err").hidden=true});
+$("rp-form").addEventListener("submit",function(e){
+  e.preventDefault();
+  var name=$("rp-name").value.trim(),email=$("rp-email").value.trim();
+  if(!name)return rpError("Enter your first name.","rp-name");
+  if(!EMAIL_RE.test(email))return rpError("Enter a valid email address.","rp-email");
+  if(!$("rp-c1").checked)return rpError("Tick the first box so I can send your report.","rp-c1");
+  var contact=$("rp-c2").checked;
+  function done(test){$("sent-test").hidden=!test;show(sent);$("sent-title").focus();window.scrollTo({top:0,behavior:"smooth"});ping("report-sent");if(contact)ping("report-contact-optin")}
+  if(!REPORT_ENDPOINT){done(true);return}
+  var btn=$("rp-send");btn.disabled=true;btn.textContent="Sending\u2026";
+  var ctrl=window.AbortController?new AbortController():null,t=setTimeout(function(){if(ctrl)ctrl.abort()},20000);
+  fetch(REPORT_ENDPOINT,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({a:ans,name:name,email:email,consent_report:true,consent_contact:contact,hp:$("rp-hp").value}),signal:ctrl?ctrl.signal:undefined})
+   .then(function(r){return r.ok?r.json():Promise.reject()})
+   .then(function(d){clearTimeout(t);if(d&&d.ok){done(false)}else{return Promise.reject()}})
+   .catch(function(){clearTimeout(t);btn.disabled=false;btn.textContent="Send my report";rpError("Couldn't send your report. Check your email address and try again, or book a call instead.")});
+});
+$("s-assess").addEventListener("click",function(){ping("quiz-assess-click")});
 $("r-book").addEventListener("click",function(){ping("quiz-book-click")});
 })();
 </script>

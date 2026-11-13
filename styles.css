@@ -342,3 +342,20 @@ p{margin:0}
 }
 @media (max-width:360px){.navjs .brand-name{font-size:16px}}
 @media (max-width:900px){.footer-links{gap:4px 18px}.footer-links a{display:inline-block;padding:11px 0}}
+
+/* report flow */
+.r-offer{border:3px solid var(--gold)}
+.r-offer ul{margin:10px 0 0;padding-left:20px;font-size:17px;line-height:1.6;color:var(--ink-soft)}
+.r-offer .btn{margin-top:6px}
+.r-small{font-size:14px;color:var(--ink-soft);margin-left:12px}
+.rp-form{display:flex;flex-direction:column;gap:10px;max-width:560px}
+.rp-form label:not(.q-opt){font-size:15px;font-weight:700;color:var(--on-navy)}
+.rp-form input[type=text],.rp-form input[type=email]{width:100%;padding:14px 16px;font-size:18px;border-radius:10px;border:1.5px solid rgba(255,255,255,.22);background:#fff;color:var(--navy);font-family:inherit}
+.rp-form input[type=text]:focus,.rp-form input[type=email]:focus{outline:3px solid var(--gold);outline-offset:2px}
+.rp-form .hp{position:absolute;left:-9999px;width:1px;height:1px;opacity:0}
+.rp-ck{margin-top:4px;align-items:flex-start}
+.rp-ck span{font-size:16px;line-height:1.45}
+.rp-form .q-fine a{color:var(--gold);text-decoration:underline}
+.rp-err{margin:0;font-weight:700;color:#FFB4A8;font-size:16px}
+@media (max-width:900px){.r-small{display:block;margin:10px 0 0}.r-offer .btn{width:100%}}
+.quiz button.btn-gold{border:0}
