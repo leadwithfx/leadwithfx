@@ -2,14 +2,14 @@ import w, { validate, validateRequest, analyse, buildReport, fallbackReflection 
 import { writeFileSync } from "node:fs";
 let fails = 0;
 const t = (name, ok) => { console.log((ok ? "PASS " : "FAIL ") + name); if (!ok) fails++; };
-const ans = [2, 1, 1, 3, 2, 3, 2, 3, 2, 3, 2, 3, 2];
+const ans = [2, 1, 1, 3, 2, 3, 2, 3];
 const base = { a: ans, name: "Sam", email: "sam@example.com", consent_report: true, consent_contact: true, hp: "" };
 const mk = (origin, body) => new Request("https://x/", { method: "POST", headers: { Origin: origin, "content-type": "application/json" }, body: JSON.stringify(body) });
 const ORI = "https://leadwithfx.com";
 
 t("valid answers", !!validate({ a: ans }));
 t("bad length rejected", !validate({ a: [1] }));
-t("out-of-range rejected", !validate({ a: [...ans.slice(0, 12), 9] }));
+t("out-of-range rejected", !validate({ a: [...ans.slice(0, 7), 9] }));
 t("valid request", !!validateRequest(base));
 t("needs report consent", !validateRequest({ ...base, consent_report: false }));
 t("bad email rejected", !validateRequest({ ...base, email: "nope" }));
@@ -21,7 +21,7 @@ t("contact flag optional", validateRequest({ ...base, consent_contact: undefined
 const a = analyse(ans);
 t("band computed", a.band.title === "Take the step");
 t("five themes", a.themes.length === 5);
-const hi = analyse([1, 1, 1, 4,4,4,4,4,4,4,4,4,4]), lo = analyse([1, 1, 1, 1,1,1,1,1,1,1,1,1,1]);
+const hi = analyse([1, 1, 1, 4,4,4,4,4]), lo = analyse([1, 1, 1, 1,1,1,1,1]);
 t("high band", hi.band.title === "Keep moving" && lo.band.title === "Light the path");
 const rep = buildReport("Sam <script>", ans, a, fallbackReflection(a), false);
 t("name escaped in email", !rep.html.includes("<script>") && rep.html.includes("&lt;script&gt;"));
