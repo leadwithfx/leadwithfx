@@ -32,6 +32,15 @@ for (const page of pages) {
     if (frag && resolved.endsWith(".html") && !new RegExp('\\sid="' + frag.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + '"').test(readFileSync(resolved, "utf8"))) bad(page, "link to a missing section: " + u);
   }
 }
+
+// Privacy: no third-party font hosts. Weight: size budget per asset type (bytes).
+for (const page of pages) {
+  const html = readFileSync(page, "utf8").replace(/<!--[\s\S]*?-->/g, "");
+  if (/fonts\.(googleapis|gstatic)\.com/.test(html)) bad(page, "loads fonts from a third party; self-host them in /fonts");
+}
+const BUDGET = { ".css": 60000, ".js": 25000, ".woff": 80000, ".woff2": 80000, ".avif": 120000, ".webp": 160000, ".jpg": 200000, ".png": 120000, ".svg": 20000 };
+const walkAssets = (d) => { for (const f of readdirSync(d)) { if (f.startsWith(".") || ["node_modules", "worker", "scripts"].includes(f)) continue; const p = join(d, f); if (statSync(p).isDirectory()) { walkAssets(p); continue; } const ext = f.slice(f.lastIndexOf(".")); const max = BUDGET[ext]; if (max && statSync(p).size > max) bad(p, "over size budget (" + statSync(p).size + " > " + max + " bytes)"); } };
+walkAssets(root);
 for (const f of ["sitemap.xml", "robots.txt", "CNAME"]) if (!existsSync(join(root, f))) { console.log("FAIL missing " + f); fails++; }
 console.log(pages.length + " pages checked");
 console.log(fails ? fails + " FAILED" : "ALL PASSED");
