@@ -22,8 +22,9 @@ try {
 const pages = ["/index.html", "/quiz.html", "/insights.html", "/privacy.html", "/terms.html"];
 process.on("unhandledRejection", (e) => { console.log("::error title=a11y crashed::" + String(e && e.stack || e).replace(/\n/g, " | ").slice(0, 900)); process.exit(1); });
 const browser = await chromium.launch();
+const context = await browser.newContext();
 for (const path of pages) {
-  const page = await browser.newPage();
+  const page = await context.newPage();
   // Third-party scripts (analytics, Turnstile) are not ours to audit and are not needed for the check.
   await page.route(/^https?:\/\/(?!127\.0\.0\.1)/, (r) => r.abort());
   await page.goto(base + path, { waitUntil: "load" });
