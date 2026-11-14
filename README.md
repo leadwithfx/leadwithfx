@@ -52,3 +52,15 @@ Putting Cloudflare in front adds what a meta tag cannot do. In the Cloudflare da
 2. SSL/TLS: set the mode to Full (strict). Turn on Always Use HTTPS.
 3. Rules, Transform Rules, Modify Response Header, for all requests: set `Strict-Transport-Security: max-age=31536000`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy: camera=(), microphone=(), geolocation=()` and `Content-Security-Policy` with `frame-ancestors 'self'` appended to the policy from the pages.
 4. Caching: cache `/fonts/*` and images for a month. Leave HTML on short caching so releases show quickly.
+
+## Turning on the Insights email signup
+
+The signup box on the Insights page is built and tested but hidden until these steps are done.
+
+1. In Brevo, go to Contacts, then Lists, then Create a list. Name it "Insights" and note its ID number.
+2. In `worker/wrangler.jsonc`, add `"INSIGHTS_LIST_ID": "<the number>"` under `vars` (next to `BREVO_LIST_ID`).
+3. In `subscribe.js`, change `SUBSCRIBE_LIVE=false` to `SUBSCRIBE_LIVE=true`.
+4. Push. CI runs, the Worker redeploys itself, and the page updates.
+5. Test: subscribe with your own address, tick the box, and check the contact appears in the Insights list with the source "Insights signup" and today's consent date.
+
+Until step 2 is done the Worker answers the form with an "off" error, so nobody can sign up to a list that does not exist. Every email you send to this list must carry an unsubscribe link (Brevo adds it to campaigns automatically).
