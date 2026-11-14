@@ -30,7 +30,8 @@ jobs:
       - name: Insights output is up to date
         run: |
           node scripts/build-insights.mjs
-          git diff --exit-code -- insights insights.html sitemap.xml || (echo '::error::Run node scripts/build-insights.mjs and commit the result' && exit 1)
+          node scripts/build-csp.mjs
+          git diff --exit-code -- insights insights.html sitemap.xml '*.html' || (echo '::error::Run node scripts/build-insights.mjs then node scripts/build-csp.mjs and commit the result' && exit 1)
       - run: node scripts/check-site.mjs
 
   accessibility:

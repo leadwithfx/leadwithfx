@@ -16,6 +16,8 @@ for (const page of pages) {
   if (!/<title>[^<]{3,}<\/title>/i.test(html)) bad(page, "missing <title>");
   if (!/<meta[^>]+name="description"[^>]+content="[^"]{20,}"/i.test(html)) bad(page, "missing meta description");
   if (!/<meta[^>]+name="viewport"/i.test(html)) bad(page, "missing viewport meta");
+  if (!/<meta http-equiv="Content-Security-Policy"/i.test(html)) bad(page, "missing Content-Security-Policy meta (run node scripts/build-csp.mjs)");
+  if (/\son(click|submit|load|change|input|keydown)="/i.test(html)) bad(page, "inline event handler attribute (blocked by the CSP)");
   for (const m of html.matchAll(/<img\b[^>]*>/gi)) if (!/\salt=/.test(m[0])) bad(page, "image without alt: " + m[0].slice(0, 60));
   for (const m of html.matchAll(/<a\b[^>]*target="_blank"[^>]*>/gi)) if (!/rel="[^"]*noopener/.test(m[0])) bad(page, "target=_blank without rel=noopener: " + m[0].slice(0, 70));
   for (const m of html.matchAll(/<script[^>]+type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/gi)) { try { JSON.parse(m[1]); } catch { bad(page, "invalid JSON-LD"); } }

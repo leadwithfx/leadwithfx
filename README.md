@@ -32,7 +32,7 @@ Remove any registrar parking page or forwarding. DNS can take minutes to a few h
 
 1. Copy `content/insights/_example.md` to a new file, e.g. `content/insights/getting-unstuck.md`.
 2. Fill in the front matter (`title`, `date` as YYYY-MM-DD, `summary`, optional `tags`) and write in Markdown. Remove `draft: true` to publish.
-3. Run `node scripts/build-insights.mjs`, then commit the generated files. CI fails if the output is stale.
+3. Run `node scripts/build-insights.mjs` then `node scripts/build-csp.mjs`, then commit the generated files. CI fails if the output is stale.
 
 The build creates the post page, the list and search box on `insights.html`, `insights/search-index.json` and the sitemap entry. Search runs in the browser; nothing about a visitor's search leaves the page.
 
@@ -41,3 +41,14 @@ The build creates the post page, the list and search box on `insights.html`, `in
 1. Get the client's written permission to use their words, and agree how to describe them (for example "Engineering manager, fintech"). Leave out names and employers unless they agree.
 2. In `index.html`, replace the three placeholder cards in the `proof` section with real quotes, then remove the `hidden` attribute from that section.
 3. CI fails if the section is visible while any `[PLACEHOLDER]` or "coming soon" text remains.
+
+## Security headers (Content-Security-Policy and Cloudflare)
+
+GitHub Pages cannot send response headers, so the Content-Security-Policy is written into each page as a `<meta>` tag by `node scripts/build-csp.mjs`. Every inline script is allowed only by its hash, so a change to inline code means re-running the script (CI fails if you forget). The accessibility job also fails on any CSP violation in a real browser. Inline event handler attributes such as `onclick=` are not allowed.
+
+Putting Cloudflare in front adds what a meta tag cannot do. In the Cloudflare dashboard for leadwithfx.com:
+
+1. DNS: point `leadwithfx.com` (and `www`) at GitHub Pages as before, with the orange cloud (proxy) on. Do this after GitHub Pages has issued its HTTPS certificate.
+2. SSL/TLS: set the mode to Full (strict). Turn on Always Use HTTPS.
+3. Rules, Transform Rules, Modify Response Header, for all requests: set `Strict-Transport-Security: max-age=31536000`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy: camera=(), microphone=(), geolocation=()` and `Content-Security-Policy` with `frame-ancestors 'self'` appended to the policy from the pages.
+4. Caching: cache `/fonts/*` and images for a month. Leave HTML on short caching so releases show quickly.
