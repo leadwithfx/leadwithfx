@@ -220,5 +220,68 @@ else {
   r = await w.fetch(mk(ORI, { ...msg, stage: "msg_code", ts: "goodtoken-goodtoken" }), LIVE);
   t("send failure on code returns 400 or 403 or 502", [400, 403, 502].includes(r.status));
 }
+
+// Daily limits, email budget, and the cron watch (real SQL via node:sqlite)
+if (DatabaseSync) {
+  const { watch, bump, peek } = await import("./index.js");
+  const mkDb = () => { const sql = new DatabaseSync(":memory:"); sql.exec(readFileSync(new URL("./schema.sql", import.meta.url), "utf8")); const DB = { prepare: (q) => { const st = sql.prepare(q); let args = []; const o = { bind: (...a) => { args = a; return o; }, run: async () => { st.run(...args); return {}; }, all: async () => ({ results: st.all(...args) }) }; return o; } }; return { sql, DB }; };
+  const sent = [];
+  globalThis.fetch = async (u, o) => { if (u.includes("turnstile")) return new Response(JSON.stringify({ success: true }), { status: 200 }); sent.push(JSON.parse(o.body)); return new Response("{}", { status: 201 }); };
+  const msg = { name: "Sam", email: "sam@example.com", message: "Hello", consent_msg: true, hp: "", ts: "goodtoken-goodtoken" };
+  const { sql, DB } = mkDb();
+  const ENV = { BREVO_API_KEY: "b", FROM_EMAIL: "hello@leadwithfx.com", ALERT_EMAIL: "me@x.com", TURNSTILE_SECRET: "s", DB };
+  const send = async (m = msg) => { sent.length = 0; let r = await w.fetch(mk(ORI, { ...m, stage: "msg_code" }), ENV); if (r.status !== 200) return { r }; const j = await r.json(); const code = sent[0].subject.match(/(\d{6})$/)[1]; const r2 = await w.fetch(mk(ORI, { ...m, stage: "msg_send", tok: j.tok, code }), ENV); return { r, r2 }; };
+  let x = await send(); t("limits: first message sends", x.r2.status === 200);
+  x = await send(); t("limits: second message sends", x.r2.status === 200);
+  x = await send(); t("limits: third message the same day is refused before a code is emailed", x.r.status === 429 && sent.length === 0);
+  x = await send({ ...msg, email: "SAM@example.com" }); t("limits: email case does not dodge the limit", x.r.status === 429);
+  x = await send({ ...msg, email: "other@example.com" }); t("limits: another person is unaffected", x.r2.status === 200);
+  t("limits: no email address is stored", !JSON.stringify(sql.prepare("SELECT * FROM daily").all()).includes("example.com"));
+  // code requests per person
+  for (let i = 0; i < 5; i++) await w.fetch(mk(ORI, { ...msg, email: "codes@example.com", stage: "msg_code" }), ENV);
+  const r6 = await w.fetch(mk(ORI, { ...msg, email: "codes@example.com", stage: "msg_code" }), ENV);
+  t("limits: a sixth code request for one address is refused", r6.status === 429);
+  // email budget
+  const b = mkDb(); const E2 = { ...ENV, DB: b.DB };
+  for (let i = 0; i < 239; i++) await bump(E2, "emails");
+  sent.length = 0;
+  let rb = await w.fetch(mk(ORI, { ...msg, email: "b1@example.com", stage: "msg_code" }), E2);
+  t("budget: allowed just under the budget", rb.status === 200);
+  await bump(E2, "emails");
+  sent.length = 0;
+  rb = await w.fetch(mk(ORI, { ...msg, email: "b2@example.com", stage: "msg_code" }), E2);
+  t("budget: contact form pauses at the budget with a 503", rb.status === 503 && (await rb.json()).error === "busy");
+  t("budget: owner is alerted once", sent.length === 1 && sent[0].subject.includes("paused") && sent[0].to[0].email === "me@x.com");
+  sent.length = 0;
+  await w.fetch(mk(ORI, { ...msg, email: "b3@example.com", stage: "msg_code" }), E2);
+  t("budget: not alerted again the same day", sent.length === 0);
+  const q = await w.fetch(mk(ORI, base), { ...E2, TURNSTILE_SECRET: undefined, DRY_RUN: "1" });
+  t("budget: the Clarity Check is never blocked", q.status === 200);
+  // watch
+  const c = mkDb(); const E3 = { BREVO_API_KEY: "b", FROM_EMAIL: "hello@leadwithfx.com", ALERT_EMAIL: "me@x.com", DB: c.DB };
+  const up = async () => new Response("ok", { status: 200 }), down = async () => { throw new Error("net"); };
+  sent.length = 0;
+  let o = await watch(E3, 1_000_000, up);
+  t("watch: all well sends nothing", !o.dead && !o.site && sent.length === 0);
+  await watch(E3, 1_000_000, down); await watch(E3, 1_000_001, down);
+  t("watch: two failed checks do not alert yet", sent.length === 0);
+  o = await watch(E3, 1_000_002, down);
+  t("watch: third failed check alerts once", o.site && sent.length === 1 && sent[0].subject.includes("not responding"));
+  await watch(E3, 1_000_003, down); await watch(E3, 1_000_004, down);
+  t("watch: no repeat alert in the same outage", sent.length === 1);
+  await watch(E3, 1_000_005, up);
+  t("watch: recovery resets the count", c.sql.prepare("SELECT COUNT(*) AS n FROM daily WHERE k='site_fail'").get().n === 0);
+  c.sql.prepare("INSERT INTO outbox (id, path, payload, status, attempts, next_at, created_at) VALUES ('d','smtp/email','{}','dead',8,0,0)").run();
+  sent.length = 0;
+  o = await watch(E3, 2_000_000, up);
+  t("watch: a dead email triggers an alert", o.dead && sent.length === 1 && sent[0].subject.includes("could not be sent"));
+  sent.length = 0; o = await watch(E3, 2_000_100, up);
+  t("watch: one alert a day for dead emails", !o.dead && sent.length === 0);
+  const day = 24 * 3600 * 1000;
+  await bump(E3, "emails", 10 * day);
+  await watch(E3, 20 * day, up);
+  t("watch: counters older than 3 days are purged", c.sql.prepare("SELECT COUNT(*) AS n FROM daily WHERE k='emails'").get().n === 0);
+  t("watch: does nothing in DRY_RUN", (await watch({ ...E3, DRY_RUN: "1" }, 3_000_000, down)).site === false);
+}
 console.log(fails ? fails + " FAILED" : "ALL PASSED");
 process.exit(fails ? 1 : 0);

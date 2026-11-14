@@ -558,3 +558,4 @@ h1,h2,h3,.brand-name,.statement-text,.quote-head,.quote-after,.quiz legend,.meth
 #msg-done{font-weight:700;color:var(--ink)}
 .msgbox p{padding:0}.msgbox #msg-sent-to{font-size:15px;line-height:1.55}
 .msgbox .btn{font-family:inherit}
+.faq-body{padding-bottom:24px}.msgbox form,.msgbox #msg-done{margin-bottom:0}
