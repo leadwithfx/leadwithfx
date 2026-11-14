@@ -22,7 +22,8 @@ try {
 const pages = ["/index.html", "/quiz.html", "/insights.html", "/privacy.html", "/terms.html"];
 process.on("unhandledRejection", (e) => { console.log("::error title=a11y crashed::" + String(e && e.stack || e).replace(/\n/g, " | ").slice(0, 900)); process.exit(1); });
 const browser = await chromium.launch();
-const context = await browser.newContext();
+for (const scheme of ["light", "dark"]) {
+const context = await browser.newContext({ colorScheme: scheme }); // dark mode follows the device setting
 for (const path of pages) {
   const page = await context.newPage();
   // Third-party scripts (analytics, Turnstile) are not ours to audit and are not needed for the check.
@@ -31,10 +32,12 @@ for (const path of pages) {
   await page.goto(base + path, { waitUntil: "load" });
   const { violations } = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze();
   const serious = violations.filter((v) => v.impact === "serious" || v.impact === "critical");
-  console.log((serious.length ? "FAIL " : "PASS ") + path + (serious.length ? ": " + serious.map((v) => v.id + " (" + v.nodes.length + ")").join(", ") : ""));
-  for (const v of serious) console.log("::error title=axe " + path + " " + v.id + "::" + v.help + " | " + v.nodes.slice(0, 4).map((n) => n.target.join(" ") + " :: " + (n.any[0] || n.all[0] || n.none[0] || {}).message).join(" || "));
+  console.log((serious.length ? "FAIL " : "PASS ") + scheme + " " + path + (serious.length ? ": " + serious.map((v) => v.id + " (" + v.nodes.length + ")").join(", ") : ""));
+  for (const v of serious) console.log("::error title=axe " + scheme + " " + path + " " + v.id + "::" + v.help + " | " + v.nodes.slice(0, 4).map((n) => n.target.join(" ") + " :: " + (n.any[0] || n.all[0] || n.none[0] || {}).message).join(" || "));
   if (serious.length) fails++;
   await page.close();
+}
+await context.close();
 }
 await browser.close();
 server.close();
