@@ -104,6 +104,31 @@ t("bad request 400", r.status === 400);
   t("no AI service is ever called", !seen.some((u) => u.includes("anthropic")));
 }
 
+
+// Insights signup
+{
+  const sc = [];
+  globalThis.fetch = async (u, o) => { sc.push(u); if (u.includes("turnstile")) return new Response(JSON.stringify({ success: String(o.body).includes("goodtoken") }), { status: 200 }); return new Response("{}", { status: 201 }); };
+  const sb = { stage: "subscribe", email: "sam@example.com", consent_news: true, hp: "", ts: "goodtoken-goodtoken" };
+  const E = { TURNSTILE_SECRET: "s", BREVO_API_KEY: "b", INSIGHTS_LIST_ID: "7" };
+  const post = (b, env) => w.fetch(new Request("https://x/", { method: "POST", headers: { Origin: ORI, "content-type": "application/json" }, body: JSON.stringify(b) }), env);
+  let r = await post(sb, E);
+  t("signup: ok adds contact to the Insights list", r.status === 200 && sc.some((c) => c.includes("brevo") && c.includes("contacts")));
+  r = await post({ ...sb, consent_news: false }, E);
+  t("signup: no tick, 400", r.status === 400);
+  r = await post({ ...sb, email: "nope" }, E);
+  t("signup: bad email, 400", r.status === 400);
+  r = await post({ ...sb, hp: "x" }, E);
+  t("signup: honeypot filled, 400", r.status === 400);
+  r = await post({ ...sb, ts: "badtoken-badtoken" }, E);
+  t("signup: failed human check, 403", r.status === 403);
+  r = await post(sb, { ...E, INSIGHTS_LIST_ID: "" });
+  t("signup: list not set, 503 (form stays honest)", r.status === 503);
+  sc.length = 0;
+  r = await post(sb, { ...E, DRY_RUN: "1" });
+  t("signup: dry run sends nothing", r.status === 200 && !sc.some((c) => c.includes("brevo")));
+}
+
 // Retry outbox, run against a real SQL engine (node:sqlite) using the repo's schema.sql
 if (!DatabaseSync) console.log("SKIP outbox tests (needs Node 22.5+)");
 else {
