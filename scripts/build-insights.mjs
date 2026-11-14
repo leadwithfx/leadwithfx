@@ -41,7 +41,7 @@ for (const p of posts) {
 // List + search box on insights.html
 const cards = posts.map((p) => '  <a class="post-card" href="insights/' + p.slug + '.html" data-slug="' + p.slug + '"><p class="post-meta">' + fmtDate(p.meta.date) + " &middot; " + p.mins + " min read</p><h2>" + esc(p.meta.title) + "</h2><p>" + esc(p.meta.summary) + "</p></a>").join("\n");
 const empty = '  <p class="posts-empty">The first articles are on their way. In the meantime, <a href="quiz.html">take the Clarity Check</a> or <a href="index.html#book">book a free intro call</a>.</p>';
-const search = posts.length ? '<form class="post-search" role="search" onsubmit="return false"><label for="post-q" class="sr-only">Search insights</label><input id="post-q" type="search" placeholder="Search insights" autocomplete="off"><p id="post-status" class="sr-only" role="status" aria-live="polite"></p></form>\n' : "";
+const search = posts.length ? '<form class="post-search" role="search"><label for="post-q" class="sr-only">Search insights</label><input id="post-q" type="search" placeholder="Search insights" autocomplete="off"><p id="post-status" class="sr-only" role="status" aria-live="polite"></p></form>\n' : "";
 let ins = readFileSync(join(root, "insights.html"), "utf8");
 ins = ins.replace(/<form class="post-search"[\s\S]*?<\/form>\n?/, "");
 ins = ins.replace(/<div class="posts" id="posts">[\s\S]*?<\/div>/, search + '<div class="posts" id="posts">\n' + (posts.length ? cards : empty) + "\n</div>");

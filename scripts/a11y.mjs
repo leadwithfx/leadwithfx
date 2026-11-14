@@ -28,6 +28,8 @@ for (const path of pages) {
   const page = await context.newPage();
   // Third-party scripts (analytics, Turnstile) are not ours to audit and are not needed for the check.
   await page.route(/^https?:\/\/(?!127\.0\.0\.1)/, (r) => r.abort());
+  const csp = [];
+  page.on("console", (m) => { if (/Content Security Policy/.test(m.text())) csp.push(m.text().slice(0, 160)); });
   await page.emulateMedia({ reducedMotion: "reduce" }); // skip fade-in animations so colours are measured at rest
   await page.goto(base + path, { waitUntil: "load" });
   const { violations } = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze();
@@ -35,6 +37,7 @@ for (const path of pages) {
   console.log((serious.length ? "FAIL " : "PASS ") + scheme + " " + path + (serious.length ? ": " + serious.map((v) => v.id + " (" + v.nodes.length + ")").join(", ") : ""));
   for (const v of serious) console.log("::error title=axe " + scheme + " " + path + " " + v.id + "::" + v.help + " | " + v.nodes.slice(0, 4).map((n) => n.target.join(" ") + " :: " + (n.any[0] || n.all[0] || n.none[0] || {}).message).join(" || "));
   if (serious.length) fails++;
+  if (csp.length) { console.log("FAIL " + scheme + " " + path + ": Content-Security-Policy violation"); console.log("::error title=CSP " + path + "::" + csp[0]); fails++; }
   await page.close();
 }
 await context.close();

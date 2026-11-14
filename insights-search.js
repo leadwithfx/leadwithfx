@@ -3,6 +3,7 @@
   var q=document.getElementById("post-q"),list=document.getElementById("posts"),status=document.getElementById("post-status");
   if(!q||!list)return;
   var idx=null,loading=false;
+  q.form.addEventListener('submit',function(e){e.preventDefault()});
   function load(cb){if(idx)return cb();if(loading)return;loading=true;
     fetch("insights/search-index.json").then(function(r){return r.json()}).then(function(d){idx=d;cb()}).catch(function(){loading=false})}
   function run(){
