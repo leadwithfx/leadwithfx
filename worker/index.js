@@ -126,24 +126,40 @@ export function buildReport(name, nums, a, reflection, aiWritten) {
   const btn = (href, label) => '<a href="' + href + '" style="display:inline-block;background:#C9A227;color:#12294D;font-weight:bold;font-size:14px;text-decoration:none;padding:12px 22px;border-radius:999px">' + label + "</a>";
   const html = '<div style="background:#FAF8F3;padding:24px 12px;font-family:Arial,Helvetica,sans-serif"><div style="max-width:560px;margin:0 auto;background:#ffffff;border-radius:12px;padding:28px 26px">' +
     '<div style="font-size:12px;letter-spacing:.12em;color:#C9A227;font-weight:bold">LEAD WITH FX</div>' +
-    '<h1 style="font-size:22px;color:#12294D;margin:8px 0 10px">Hi ' + first + ", here's your Clarity Report</h1>" +
+    '<h1 style="font-size:22px;color:#12294D;margin:8px 0 10px">Clarity Report for ' + first + "</h1>" +
     '<p style="margin:0;font-size:15px;line-height:1.6;color:#4a5568"><b style="color:#12294D">' + a.band.title + ".</b> " + a.band.body + "</p>" +
     '<p style="margin:10px 0 0;font-size:14px;line-height:1.6;color:#4a5568"><b style="color:#12294D">Your next step.</b> ' + a.band.step + "</p>" +
     sec("Your five themes", '<table role="presentation" width="100%" cellspacing="0" cellpadding="0">' + bars + "</table>") +
     sec("A closer look at your answers", reflHtml + (aiWritten ? '<p style="margin:6px 0 0;font-size:12px;color:#6b7280">Written by AI from your answers only. It is not from Freddie, and it is not advice.</p>' : "")) +
     sec("Your 90-day starter plan: " + a.low.n, plan) +
     sec("Using your strengths", '<p style="margin:0 0 10px;font-size:14px;line-height:1.6;color:#4a5568">Take this free strengths assessment (about 15 minutes). It is run by an independent organisation, not by me. When you have your top strengths, look for the one that could lift your lowest theme, ' + a.low.n.toLowerCase() + ", and bring them to our intro call.</p>" + btn(ASSESS_URL, "Take the assessment")) +
-    '<div style="margin-top:22px">' + btn(BOOK_URL, "Book a free intro call") + "</div>" +
-    '<p style="margin:22px 0 0;font-size:12px;line-height:1.5;color:#6b7280">You got this one-off email because you asked for your report on leadwithfx.com. This is a reflection tool, not an assessment or a diagnosis. Freddie Xavier, Lead with FX, leadwithfx@gmail.com</p>' +
+    '<p style="margin:22px 0 0;font-size:12px;line-height:1.5;color:#6b7280">Prepared from the answers this person shared on leadwithfx.com, to go through together on the intro call. This is a reflection tool, not an assessment or a diagnosis.</p>' +
     "</div></div>";
-  const text = ["Hi " + name + ", here's your Clarity Report", "", a.band.title + ". " + a.band.body, "Your next step. " + a.band.step, "",
+  const text = ["Clarity Report for " + name, "", a.band.title + ". " + a.band.body, "Your next step. " + a.band.step, "",
     "YOUR FIVE THEMES", ...a.themes.map((t) => t.n + ": " + t.label), "",
     "A CLOSER LOOK AT YOUR ANSWERS", reflection + (aiWritten ? "\n(Written by AI from your answers only. It is not from Freddie, and it is not advice.)" : ""), "",
     "YOUR 90-DAY STARTER PLAN: " + a.low.n.toUpperCase(), ...a.low.plan.map((p, i) => (i + 1) + ". " + p), "",
     "USING YOUR STRENGTHS", "Take this free strengths assessment (about 15 minutes), run by an independent organisation, not by me: " + ASSESS_URL, "",
+    "Prepared from the answers this person shared on leadwithfx.com, to go through together on the intro call."].join("\n");
+  return { subject: "Clarity Report for " + name, html, text };
+}
+
+export function buildConfirmation(name) {
+  const first = esc(name);
+  const p = (t) => '<p style="margin:0 0 12px;font-size:15px;line-height:1.6;color:#4a5568">' + t + "</p>";
+  const html = '<div style="background:#FAF8F3;padding:24px 12px;font-family:Arial,Helvetica,sans-serif"><div style="max-width:560px;margin:0 auto;background:#ffffff;border-radius:12px;padding:28px 26px">' +
+    '<div style="font-size:12px;letter-spacing:.12em;color:#C9A227;font-weight:bold">LEAD WITH FX</div>' +
+    '<h1 style="font-size:22px;color:#12294D;margin:8px 0 14px">Thanks, ' + first + "</h1>" +
+    p("I have your Clarity Check answers and I'm preparing your full Clarity Report.") +
+    p("The best next step is a free intro call. I'll share your report with you there, and we'll talk about what you're looking for and whether I can help.") +
+    '<div style="margin:18px 0"><a href="' + BOOK_URL + '" style="display:inline-block;background:#C9A227;color:#12294D;font-weight:bold;font-size:14px;text-decoration:none;padding:12px 22px;border-radius:999px">Book a free intro call</a></div>' +
+    '<p style="margin:22px 0 0;font-size:12px;line-height:1.5;color:#6b7280">You got this one-off email because you shared your Clarity Check answers on leadwithfx.com. Freddie Xavier, Lead with FX, leadwithfx@gmail.com</p>' +
+    "</div></div>";
+  const text = ["Thanks, " + name, "", "I have your Clarity Check answers and I'm preparing your full Clarity Report.", "",
+    "The best next step is a free intro call. I'll share your report with you there, and we'll talk about what you're looking for and whether I can help.", "",
     "Book a free intro call: " + BOOK_URL, "",
-    "You got this one-off email because you asked for your report on leadwithfx.com. Freddie Xavier, Lead with FX, leadwithfx@gmail.com"].join("\n");
-  return { subject: "Your Clarity Report, " + name, html, text };
+    "You got this one-off email because you shared your Clarity Check answers on leadwithfx.com. Freddie Xavier, Lead with FX, leadwithfx@gmail.com"].join("\n");
+  return { subject: "Thanks, " + name + ": let's book your intro call", html, text };
 }
 
 async function aiReflection(env, nums) {
@@ -212,35 +228,34 @@ export default {
     const a = analyse(req.nums);
     const ai = await aiReflection(env, req.nums);
     const report = buildReport(req.name, req.nums, a, ai || fallbackReflection(a), !!ai);
+    const confirm = buildConfirmation(req.name);
+    const today = new Date().toISOString().slice(0, 10);
+    const attrs = { FIRSTNAME: req.name, BAND: a.band.title, PROFILE: PROFILE[req.nums[0] - 1], COACHED_BEFORE: COACHED[req.nums[1] - 1], HELPED_BEFORE: HELPED[req.nums[2] - 1], LOWEST_THEME: a.low.n, CONSENT_DATE: today, STAGE: "Answers received" };
+    const rows = [["Name", req.name], ["Email", req.email], ["Result", a.band.title], ["Profile", attrs.PROFILE], ["Coaching before", attrs.COACHED_BEFORE], ["What helped before", attrs.HELPED_BEFORE], ["Lowest theme", a.low.n], ["Contact consent", req.contact ? "Ticked: Freddie can contact me personally (" + today + ")" : "Not ticked: use the details for this report and booking only"]];
+    const lead = '<table cellpadding="6" style="font-family:Arial,sans-serif;font-size:14px;margin-bottom:12px">' + rows.map((r) => "<tr><td><b>" + r[0] + "</b></td><td>" + esc(r[1]) + "</td></tr>").join("") + "</table>";
+    const toFreddie = { subject: "New lead: " + req.name + ", " + a.band.title, html: lead + report.html, text: rows.map((r) => r[0] + ": " + r[1]).join("\n") + "\n\n" + report.text };
 
     if (env.DRY_RUN === "1" || !env.BREVO_API_KEY) {
-      return json({ ok: true, dry: true, subject: report.subject, html: report.html, text: report.text, lead: req.contact }, 200, origin);
+      return json({ ok: true, dry: true, subject: report.subject, html: report.html, text: report.text, confirmation: confirm.html, lead: req.contact }, 200, origin);
     }
 
     const sender = { name: "Freddie at Lead with FX", email: env.FROM_EMAIL };
-    const sent = await brevo(env, "smtp/email", {
-      sender, replyTo: { email: "leadwithfx@gmail.com", name: "Freddie Xavier" },
-      to: [{ email: req.email, name: req.name }],
-      subject: report.subject, htmlContent: report.html, textContent: report.text,
+    const mine = await brevo(env, "smtp/email", {
+      sender, replyTo: { email: req.email, name: req.name },
+      to: [{ email: env.ALERT_EMAIL || "leadwithfx@gmail.com" }],
+      subject: toFreddie.subject, htmlContent: toFreddie.html, textContent: toFreddie.text,
     });
-    if (!sent.ok) return json({ error: "send" }, 502, origin);
-
-    if (req.contact) {
-      const today = new Date().toISOString().slice(0, 10);
-      const attrs = { FIRSTNAME: req.name, BAND: a.band.title, PROFILE: PROFILE[req.nums[0] - 1], COACHED_BEFORE: COACHED[req.nums[1] - 1], HELPED_BEFORE: HELPED[req.nums[2] - 1], LOWEST_THEME: a.low.n, CONSENT_DATE: today, STAGE: "Report sent" };
-      try {
+    if (!mine.ok) return json({ error: "send" }, 502, origin);
+    try {
+      await brevo(env, "smtp/email", {
+        sender, replyTo: { email: "leadwithfx@gmail.com", name: "Freddie Xavier" },
+        to: [{ email: req.email, name: req.name }],
+        subject: confirm.subject, htmlContent: confirm.html, textContent: confirm.text,
+      });
+      if (req.contact) {
         await brevo(env, "contacts", { email: req.email, attributes: attrs, listIds: env.BREVO_LIST_ID ? [Number(env.BREVO_LIST_ID)] : [], updateEnabled: true });
-        if (env.ALERT_EMAIL) {
-          const rows = [["Name", req.name], ["Email", req.email], ["Result", a.band.title], ["Profile", attrs.PROFILE], ["Coaching before", attrs.COACHED_BEFORE], ["What helped before", attrs.HELPED_BEFORE], ["Lowest theme", a.low.n], ["Consent", "Ticked: Freddie can contact me personally (" + today + ")"], ["Stage", "Report sent"]];
-          await brevo(env, "smtp/email", {
-            sender, to: [{ email: env.ALERT_EMAIL }],
-            subject: "New lead: " + req.name + ", " + a.band.title,
-            htmlContent: '<table cellpadding="6" style="font-family:Arial,sans-serif;font-size:14px">' + rows.map((r) => "<tr><td><b>" + r[0] + "</b></td><td>" + esc(r[1]) + "</td></tr>").join("") + "</table>",
-            textContent: rows.map((r) => r[0] + ": " + r[1]).join("\n"),
-          });
-        }
-      } catch { /* the report was already sent; pipeline errors must not break the visitor's flow */ }
-    }
+      }
+    } catch { /* the lead already reached Freddie; follow-up errors must not break the visitor's flow */ }
     return json({ ok: true }, 200, origin);
   },
 };

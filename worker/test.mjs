@@ -1,4 +1,4 @@
-import w, { validate, validateRequest, analyse, buildReport, fallbackReflection } from "./index.js";
+import w, { validate, validateRequest, analyse, buildReport, buildConfirmation, fallbackReflection } from "./index.js";
 import { writeFileSync } from "node:fs";
 let fails = 0;
 const t = (name, ok) => { console.log((ok ? "PASS " : "FAIL ") + name); if (!ok) fails++; };
@@ -30,6 +30,11 @@ t("independent-organisation line", rep.html.includes("independent organisation")
 t("AI label only when AI used", !rep.html.includes("Written by AI") && buildReport("Sam", ans, a, "x y z", true).html.includes("Written by AI"));
 writeFileSync("/tmp/sample-report.html", buildReport("Sam", ans, a, "Your answers show real momentum, and a gap in who knows the value you bring.\n\nWhat would change if the people who matter saw your results more often?", true).html);
 
+{
+  const c = buildConfirmation("Sam <script>");
+  t("confirmation escapes name", !c.html.includes("<script>") && c.html.includes("&lt;script&gt;"));
+  t("confirmation holds back the report", !/Light the path|Take the step|Keep moving|YOUR FIVE THEMES/i.test(c.html + c.text) && /intro call/.test(c.html));
+}
 const calls = [];
 globalThis.fetch = async (u, o) => {
   calls.push(u);
@@ -41,10 +46,10 @@ let j = await r.json();
 t("dry run returns report, sends nothing", r.status === 200 && j.dry && j.html && !calls.some((c) => c.includes("brevo")));
 calls.length = 0;
 r = await w.fetch(mk(ORI, base), { BREVO_API_KEY: "b", FROM_EMAIL: "hello@leadwithfx.com", ALERT_EMAIL: "me@x.com", BREVO_LIST_ID: "3", ANTHROPIC_API_KEY: "k" });
-t("live path: report + contact + alert", r.status === 200 && calls.filter((c) => c.includes("brevo")).length === 3);
+t("live path: lead report + confirmation + contact", r.status === 200 && calls.filter((c) => c.includes("brevo")).length === 3);
 calls.length = 0;
 r = await w.fetch(mk(ORI, { ...base, consent_contact: false }), { BREVO_API_KEY: "b", FROM_EMAIL: "hello@leadwithfx.com", ALERT_EMAIL: "me@x.com" });
-t("no tick: report only, nothing stored", r.status === 200 && calls.filter((c) => c.includes("brevo")).length === 1 && !calls.some((c) => c.includes("contacts")));
+t("no tick: lead report + confirmation, nothing stored", r.status === 200 && calls.filter((c) => c.includes("brevo")).length === 2 && !calls.some((c) => c.includes("contacts")));
 globalThis.fetch = async () => new Response("no", { status: 500 });
 r = await w.fetch(mk(ORI, base), { BREVO_API_KEY: "b", FROM_EMAIL: "f@x.com" });
 t("send failure returns 502", r.status === 502);
