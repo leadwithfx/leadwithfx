@@ -42,3 +42,12 @@ The Worker already checks the site address (origin), caps the request size at 4 
 3. **Per-visitor limit** (Workers rate limiting): in the Worker's wrangler config or dashboard, add a Rate Limiting binding named `LIMITER`, for example 3 requests per 60 seconds. If you deploy by pasting code in the dashboard, add the binding under Settings > Bindings. Visitors who go over get a "please wait a minute" message.
 
 Optional later: move DNS from GoDaddy to Cloudflare (free). That lets Cloudflare's bot protection, AI-crawler blocking and rate limits sit in front of the whole site.
+
+
+## Deploying (GitHub only, no pasting)
+
+The Worker deploys from this repo through Cloudflare Workers Builds. One-time setup in Cloudflare: Workers > clarity-report > Settings > Builds > Connect to GitHub, repo `leadwithfx/leadwithfx`, root directory `worker`, build command `node test.mjs`, deploy command `npx wrangler deploy`. After that, any push to `main` that changes `worker/` runs the tests and deploys only if they pass.
+
+- Plain settings (`FROM_EMAIL`, `ALERT_EMAIL`, `BREVO_LIST_ID`, `DRY_RUN`) and the `LIMITER` rate limit are set in `wrangler.jsonc`. Change them in GitHub, not in the dashboard.
+- Secrets (`BREVO_API_KEY`, `TURNSTILE_SECRET`) stay in Cloudflare only.
+- To go live, delete the `DRY_RUN` line in `wrangler.jsonc` and push.
