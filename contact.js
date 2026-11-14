@@ -21,6 +21,8 @@
     busy=false;
     var m="Something went wrong. Please try again in a moment, or email leadwithfx@gmail.com.";
     if(e&&e.kind==="code")m="That code did not match, or it has expired. Check the email and try again, or go back to get a new code.";
+    else if(e&&e.kind==="limit")m="You have reached today's limit for messages from this address. Please try again tomorrow, or email leadwithfx@gmail.com.";
+    else if(e&&e.kind==="busy")m="Messages are paused for the moment. Please email leadwithfx@gmail.com.";
     else if(e&&e.status===429)m="Too many tries. Please wait a minute and try again.";
     else if(e&&e.kind==="human")m="The security check did not pass. Please try again.";
     st.textContent=m;

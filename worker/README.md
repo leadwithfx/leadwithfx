@@ -70,3 +70,11 @@ If Brevo is down or slow, a failed send is not lost. The Worker saves just that 
 ## "Drop me a message" (contact form)
 
 The contact FAQ on the homepage has a form (`contact.js`). Step 1 (`msg_code`) checks the human check, then emails a 6-digit code to the visitor. Step 2 (`msg_send`) checks the code and only then emails the message to `ALERT_EMAIL`, with the visitor as reply-to, and sends the visitor a copy. Nothing is stored: the code is bound to the name, email and message by a signed token (HMAC with `TURNSTILE_SECRET`) that the page holds for 10 minutes. It needs `BREVO_API_KEY`, `FROM_EMAIL` and `TURNSTILE_SECRET`; if any is missing the Worker answers 503 and the page tells the visitor to email instead. The `LIMITER` rate limit applies to both steps. Messages are limited to 2,000 characters. To switch the form off, set `LIVE` to `false` at the top of `contact.js`.
+
+### Daily limits, email budget and alerts
+
+These use the existing D1 database (the Worker creates its `daily` table itself; see `schema.sql`). They do nothing if D1 is not connected.
+
+- **Per person:** at most 2 completed messages and 5 code requests per email address per day (UTC). The address is kept only as a keyed hash, and counters are deleted after 3 days.
+- **Email budget:** every email the Worker sends is counted. At 240 a day (Brevo's free plan allows 300) the contact form pauses with a "please email instead" message, and you get one alert. The Clarity Check is never paused. Change `DAILY_EMAIL_BUDGET` in `index.js` if you change Brevo plan.
+- **Alerts** (run by the 5-minute cron, each sent to `ALERT_EMAIL`): an email the Worker gave up on (once a day while any are stuck); `leadwithfx.com` failing three checks in a row, about 15 minutes (once per outage); and the budget alert above.

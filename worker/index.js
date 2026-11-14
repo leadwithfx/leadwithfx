@@ -188,16 +188,53 @@ async function trySend(env, path, payload) {
   catch { return { ok: false, status: 0 }; }
 }
 
+// Daily counters in D1 (table "daily"): emails sent today, per-person limits on the contact form, and alert de-duplication.
+// Only hashed keys are kept (never an email address) and rows older than 3 days are purged. If D1 is unavailable, limits are skipped rather than blocking visitors.
+const DAILY_EMAIL_BUDGET = 240; // Brevo's free plan allows 300 a day; the contact form pauses here so quiz reports and lead alerts still get through
+const MSG_PER_PERSON = 2, CODES_PER_PERSON = 5;
+const dayOf = (now = Date.now()) => new Date(now).toISOString().slice(0, 10);
+const readyDbs = new WeakSet();
+async function dailyReady(env) {
+  if (!env.DB) return false;
+  if (readyDbs.has(env.DB)) return true;
+  try {
+    await env.DB.prepare("CREATE TABLE IF NOT EXISTS daily (k TEXT NOT NULL, day TEXT NOT NULL, n INTEGER NOT NULL DEFAULT 0, PRIMARY KEY (k, day))").run();
+    readyDbs.add(env.DB); return true;
+  } catch { return false; }
+}
+export async function bump(env, k, now = Date.now(), day = dayOf(now)) {
+  if (!(await dailyReady(env))) return null;
+  try {
+    const { results } = await env.DB.prepare("INSERT INTO daily (k, day, n) VALUES (?, ?, 1) ON CONFLICT (k, day) DO UPDATE SET n = n + 1 RETURNING n").bind(k, day).all();
+    return results && results[0] ? results[0].n : null;
+  } catch { return null; }
+}
+export async function peek(env, k, now = Date.now(), day = dayOf(now)) {
+  if (!(await dailyReady(env))) return null;
+  try {
+    const { results } = await env.DB.prepare("SELECT n FROM daily WHERE k = ? AND day = ?").bind(k, day).all();
+    return results && results[0] ? results[0].n : 0;
+  } catch { return null; }
+}
+// A plain email to the owner (not counted, not queued): used for alerts only.
+async function alertOwner(env, subject, text) {
+  if (!env.BREVO_API_KEY || !env.FROM_EMAIL || env.DRY_RUN === "1") return false;
+  const r = await trySend(env, "smtp/email", { sender: { name: "Lead with FX alerts", email: env.FROM_EMAIL }, to: [{ email: env.ALERT_EMAIL || "leadwithfx@gmail.com" }], subject, textContent: text });
+  log("alert", { subject, ok: r.ok });
+  return r.ok;
+}
+
 // Returns "sent", "queued" (will be retried) or "failed" (not sent and not retryable).
 export async function deliver(env, path, payload, now = Date.now()) {
   const r = await trySend(env, path, payload);
-  if (r.ok) return "sent";
+  if (r.ok) { if (path === "smtp/email") await bump(env, "emails", now); return "sent"; }
   log("send_failed", { path, status: r.status });
   if (env.DB && retriable(r.status)) {
     try {
       await env.DB.prepare("INSERT INTO outbox (id, path, payload, status, attempts, next_at, last_error, created_at) VALUES (?, ?, ?, 'pending', 1, ?, ?, ?)")
         .bind(crypto.randomUUID(), path, JSON.stringify(payload), now + backoff(1), "status " + r.status, now).run();
       log("outbox_queued", { path });
+      if (path === "smtp/email") await bump(env, "emails", now);
       return "queued";
     } catch { log("outbox_write_failed", { path }); }
   }
@@ -222,6 +259,28 @@ export async function processOutbox(env, now = Date.now(), limit = 20) {
     }
   }
   await env.DB.prepare("DELETE FROM outbox WHERE status = 'dead' AND created_at < ?").bind(now - DEAD_KEEP_MS).run();
+  return out;
+}
+
+// Run by the cron trigger after the outbox: tells the owner about stuck sends, an unreachable site, and a spent email budget.
+export async function watch(env, now = Date.now(), check = (u) => fetch(u, { redirect: "follow", signal: AbortSignal.timeout(8000) })) {
+  const out = { dead: false, site: false };
+  if (!env.DB || !env.BREVO_API_KEY || env.DRY_RUN === "1") return out;
+  try {
+    const { results } = await env.DB.prepare("SELECT COUNT(*) AS n FROM outbox WHERE status = 'dead'").all();
+    if (results && results[0] && results[0].n > 0 && (await bump(env, "alert:dead", now)) === 1) {
+      out.dead = await alertOwner(env, "Lead with FX: " + results[0].n + " email(s) could not be sent", "The Worker gave up on " + results[0].n + " email(s) after repeated failures, so a visitor may not have received a report or a message, or you may have missed a lead. Check the Brevo transactional log (limits, sender, API key) and the Worker logs in Cloudflare. The failed emails are kept for 7 days in the clarity-outbox database (status 'dead').");
+    }
+  } catch { /* table missing: nothing to report */ }
+  let up = false;
+  try { const r = await check("https://leadwithfx.com/"); up = r.ok; } catch { up = false; }
+  if (up) {
+    if (await peek(env, "site_fail", now, "state")) await env.DB.prepare("DELETE FROM daily WHERE k = 'site_fail'").run();
+  } else {
+    const n = await bump(env, "site_fail", now, "state");
+    if (n === 3) out.site = await alertOwner(env, "leadwithfx.com is not responding", "The site has failed three checks in a row (about 15 minutes). Check GitHub Pages (repo Settings > Pages and the latest deploy) and the domain in GoDaddy. You will not get another alert for this outage.");
+  }
+  try { await env.DB.prepare("DELETE FROM daily WHERE day < ? AND day != 'state'").bind(dayOf(now - 3 * 24 * 3600 * 1000)).run(); } catch { /* ignore */ }
   return out;
 }
 
@@ -297,8 +356,16 @@ export async function contact(env, body, ip, origin, now = Date.now()) {
   const sender = { name: "Freddie at Lead with FX", email: env.FROM_EMAIL };
   const to = [{ email: env.ALERT_EMAIL || "leadwithfx@gmail.com" }];
 
+  const who = "msg:" + (await hmac(env.TURNSTILE_SECRET, "ctr|" + m.email.toLowerCase()));
   if (body.stage === "msg_code") {
     if (!(await humanOk(env, body.ts, ip))) return json({ error: "human" }, 403, origin);
+    const used = await peek(env, "emails", now);
+    if (used !== null && used >= DAILY_EMAIL_BUDGET) {
+      if ((await bump(env, "alert:budget", now)) === 1) await alertOwner(env, "Lead with FX: contact form paused for today", "About " + used + " emails have been sent today, close to Brevo's 300 a day. The contact form is paused until tomorrow (UTC) so quiz reports and lead alerts still get through. Visitors are told to email you instead.");
+      return json({ error: "busy" }, 503, origin);
+    }
+    if (((await peek(env, who, now)) || 0) >= MSG_PER_PERSON) return json({ error: "limit" }, 429, origin);
+    if (((await bump(env, "code:" + who, now)) || 0) > CODES_PER_PERSON) return json({ error: "limit" }, 429, origin);
     const code = newCode(), exp = now + CODE_TTL_MS;
     const tok = exp + "." + (await codeSig(env, m, code, exp));
     if (dry) return json({ ok: true, dry: true, code, tok }, 200, origin);
@@ -314,6 +381,7 @@ export async function contact(env, body, ip, origin, now = Date.now()) {
   const [exp, sig] = String(body.tok || "").split(".");
   if (!/^\d{6}$/.test(code) || !exp || !sig || !(Number(exp) > now)) return json({ error: "code" }, 403, origin);
   if (sig !== (await codeSig(env, m, code, exp))) return json({ error: "code" }, 403, origin);
+  if (((await peek(env, who, now)) || 0) >= MSG_PER_PERSON) return json({ error: "limit" }, 429, origin);
   const subject = "Message from " + m.name + " via leadwithfx.com";
   if (dry) return json({ ok: true, dry: true, subject }, 200, origin);
   const mine = await deliver(env, "smtp/email", { sender, replyTo: { email: m.email, name: m.name }, to, subject,
@@ -322,6 +390,7 @@ export async function contact(env, body, ip, origin, now = Date.now()) {
   const theirs = await deliver(env, "smtp/email", { sender, replyTo: { email: "leadwithfx@gmail.com", name: "Freddie Xavier" }, to: [{ email: m.email, name: m.name }], subject: "I got your message",
     htmlContent: wrap('<h1 style="font-size:20px;color:#12294D;margin:8px 0 10px">Thanks ' + esc(m.name) + ', I got your message</h1><p style="margin:0 0 12px;font-size:15px;line-height:1.6;color:#4a5568">I&rsquo;ll reply as soon as I see it, but please allow up to 72 hours.</p><p style="margin:0;font-size:14px;line-height:1.6;color:#6b7280"><b>Your message</b><br>' + para(m.message) + "</p>"),
     textContent: "Thanks " + m.name + ", I got your message.\nI'll reply as soon as I see it, but please allow up to 72 hours.\n\nYour message:\n" + m.message });
+  if (mine !== "failed") await bump(env, who, now);
   if (mine === "failed" || theirs === "failed") return json({ error: "send" }, 502, origin);
   return json({ ok: true, ...(mine === "queued" || theirs === "queued" ? { queued: true } : {}) }, 200, origin);
 }
@@ -389,6 +458,6 @@ export default {
     return json({ ok: true, tok, ...(mine === "queued" || theirs === "queued" ? { queued: true } : {}) }, 200, origin);
   },
   async scheduled(event, env, ctx) {
-    ctx.waitUntil(processOutbox(env).then((r) => log("outbox_run", r)));
+    ctx.waitUntil(processOutbox(env).then((r) => log("outbox_run", r)).then(() => watch(env)).then((r) => log("watch_run", r)));
   },
 };
