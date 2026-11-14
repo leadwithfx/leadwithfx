@@ -16,7 +16,7 @@ const ALLOWED_ORIGINS = ["https://leadwithfx.com", "https://www.leadwithfx.com"]
 const BOOK_URL = "https://calendly.com/freddie-rx";
 const ASSESS_URL = "https://www.viacharacter.org/account/register";
 
-const SYSTEM = `You write a short, warm, plain-English reflection for someone who has just completed a ten-question career "Clarity Check".
+const SYSTEM = `You write a short, warm, plain-English reflection for someone who has just completed a five-question career "Clarity Check".
 You are given their answers as question and chosen option pairs. The first three items say who they are, whether they have worked with a coach before, and what has helped them get unstuck before.
 Rules:
 - 90 to 120 words, two short paragraphs, no headings, no bullet points, no emojis.
@@ -27,34 +27,34 @@ Rules:
 - Do not invent facts about their job, employer or life beyond the answers.
 - Use "you". Plain language. Australian spelling.`;
 
-const QUESTIONS = [{"q":"Which best describes you?","o":["Tech leader or manager","Career changer","Early-career professional","Something else"],"profile":1},{"q":"Have you worked with a coach before?","o":["No, this would be my first time","Once or twice","Yes, several times"],"profile":1},{"q":"Think of a time you got unstuck on something important. What made the difference?","o":["I talked it through with someone and the answer became clear to me","Someone who had done it told me what worked for them","An expert gave me the answer or took it on","I haven't really got unstuck yet"],"profile":1},{"q":"How clear are you on your next role or move?","o":["I have no real idea","A few options, but nothing feels right","I have a direction, but I'm not sure it's the right one","I know exactly what I want next"]},{"q":"When you face an important career decision, you usually…","o":["Put it off","Go round in circles","Weigh it up, then decide with some doubt","Decide with confidence and act"]},{"q":"How well do the people who matter know the value you bring?","o":["Hardly at all","Some of them","Most of them, but not the key decision makers","Clearly, including the key decision makers"]},{"q":"Do you have a plan with dates for your next 90 days?","o":["No plan","A rough idea in my head","A written plan, but I'm not following it","A written plan I'm working through"]},{"q":"Who holds you accountable for your growth?","o":["Nobody","I only check in with myself","Someone occasionally","Someone regularly, and it works"]},{"q":"How would you describe your momentum right now?","o":["Stuck","Slow and stop-start","Steady, but not going where I want","Moving, and building speed"]},{"q":"How well do you know the gap between where you are and the next level?","o":["I have no idea what it takes","I have a vague sense","I know some of the gaps, but haven't confirmed them","I know exactly what to build next"]},{"q":"How much of your time goes on what matters most for your growth?","o":["Almost none, I'm in firefighting mode","A little, when I can find the time","About half","Most of it, and I protect that time"]},{"q":"How confident are you influencing senior stakeholders?","o":["I avoid it","I do it, but it feels uncomfortable","Fairly confident in familiar situations","Confident, even in high-stakes rooms"]},{"q":"Who speaks up for you when you're not in the room?","o":["Nobody","One or two people, rarely","A few people, but not senior ones","Several senior sponsors who advocate for me"]}];
+const QUESTIONS = [{"q":"Which best describes you?","o":["Tech leader or manager","Career changer","Early-career professional","Something else"],"profile":1},{"q":"Have you worked with a coach before?","o":["No, this would be my first time","Once or twice","Yes, several times"],"profile":1},{"q":"Think of a time you got unstuck on something important. What made the difference?","o":["I talked it through with someone and the answer became clear to me","Someone who had done it told me what worked for them","An expert gave me the answer or took it on","I haven't really got unstuck yet"],"profile":1},{"q":"How clear are you on your next role or move?","o":["I have no real idea","A few options, but nothing feels right","I have a direction, but I'm not sure it's the right one","I know exactly what I want next"]},{"q":"How well do the people who matter know the value you bring?","o":["Hardly at all","Some of them","Most of them, but not the key decision makers","Clearly, including the key decision makers"]},{"q":"Who holds you accountable for your growth?","o":["Nobody","I only check in with myself","Someone occasionally","Someone regularly, and it works"]},{"q":"How would you describe your momentum right now?","o":["Stuck","Slow and stop-start","Steady, but not going where I want","Moving, and building speed"]},{"q":"How confident are you influencing senior stakeholders?","o":["I avoid it","I do it, but it feels uncomfortable","Fairly confident in familiar situations","Confident, even in high-stakes rooms"]}];
 
 const THEMES = [
-  { n: "Clarity", q: [1, 2, 7], plan: [
+  { n: "Clarity", q: [1], plan: [
     "Write one sentence on the role or move you want next, and why it matters to you.",
     "List the three biggest gaps between you and it, then ask someone who has been there which one matters most.",
     "Set a date to decide, and put it in your calendar." ] },
-  { n: "Visibility", q: [3, 10], plan: [
+  { n: "Visibility", q: [2], plan: [
     "List the five people who most shape your next step, and what each of them knows about your work.",
     "Share one recent result with a senior person this month.",
     "Ask someone you trust what you are known for, and whether that matches what you want to be known for." ] },
-  { n: "Accountability", q: [4, 5], plan: [
+  { n: "Accountability", q: [3], plan: [
     "Pick one growth goal for the next 90 days and write it down with a date.",
     "Book a standing monthly check-in with someone who will be straight with you.",
     "Review your progress at day 30, day 60 and day 90." ] },
-  { n: "Momentum", q: [6, 8], plan: [
+  { n: "Momentum", q: [4], plan: [
     "Block two hours a week in your calendar for your growth, and protect them.",
     "Each week, do the one task that moves you most before anything else.",
     "At the end of each month, write down one thing you finished." ] },
-  { n: "Influence", q: [9], plan: [
+  { n: "Influence", q: [5], plan: [
     "Before your next senior meeting, write the one point you want them to leave with.",
     "Ask a senior stakeholder for 15 minutes to understand their priorities.",
     "Afterwards, note what landed and what didn't." ] },
 ];
 const BANDS = [
-  { max: 18, title: "Light the path", body: "Right now the main thing missing is clarity. You have the experience and the tools, but too many thoughts and options are competing, so it's hard to see the way forward.", step: "Start by getting a candid look at where you are, what's working and what's in the way. That makes the next move much easier to choose." },
-  { max: 30, title: "Take the step", body: "You can already see some of the path. What holds you back now is choosing the next move and committing to it, rather than waiting until everything feels certain.", step: "Pick one focused move, decide when you'll do it, and use practical tools you can apply in your next meeting, not next quarter." },
-  { max: 40, title: "Keep moving", body: "You have clarity and momentum. The risk now is drifting, or plateauing without noticing, because nobody is checking your direction.", step: "Add regular check-ins and honest accountability, and plan for the next level before you need it." },
+  { max: 9, title: "Light the path", body: "Right now the main thing missing is clarity. You have the experience and the tools, but too many thoughts and options are competing, so it's hard to see the way forward.", step: "Start by getting a candid look at where you are, what's working and what's in the way. That makes the next move much easier to choose." },
+  { max: 15, title: "Take the step", body: "You can already see some of the path. What holds you back now is choosing the next move and committing to it, rather than waiting until everything feels certain.", step: "Pick one focused move, decide when you'll do it, and use practical tools you can apply in your next meeting, not next quarter." },
+  { max: 20, title: "Keep moving", body: "You have clarity and momentum. The risk now is drifting, or plateauing without noticing, because nobody is checking your direction.", step: "Add regular check-ins and honest accountability, and plan for the next level before you need it." },
 ];
 
 export function cors(origin) {
