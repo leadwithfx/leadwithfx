@@ -513,3 +513,15 @@ h1,h2,h3,.brand-name,.statement-text,.quote-head,.quote-after,.quiz legend,.meth
 .doc ol{padding-left:22px;display:flex;flex-direction:column;gap:10px}
 .doc hr{border:0;border-top:1px solid var(--line);margin:32px 0}
 .doc .tags{flex-direction:row;padding-left:0}
+
+.subscribe{margin-top:48px;padding:28px;border:1px solid var(--line);border-radius:16px;background:var(--card);max-width:560px}
+.subscribe h2{margin:0 0 6px}
+.subscribe form{display:flex;flex-direction:column;gap:10px;margin-top:12px}
+.subscribe label{font-weight:700;font-size:15px;color:var(--ink)}
+.subscribe input[type=email]{width:100%;padding:14px 16px;font-size:18px;border-radius:10px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);font-family:inherit}
+.subscribe input[type=email]:focus{outline:3px solid var(--gold);outline-offset:2px}
+.subscribe .sub-consent{display:flex;gap:10px;align-items:flex-start;font-weight:400;font-size:14px}
+.subscribe .sub-consent input{margin-top:3px}
+.subscribe .hp{position:absolute;left:-9999px;width:1px;height:1px;opacity:0}
+.subscribe .btn{align-self:flex-start;cursor:pointer;border:0}
+#sub-msg{margin:0;font-size:14px;color:var(--ink-soft)}

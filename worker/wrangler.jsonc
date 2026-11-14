@@ -9,6 +9,7 @@
     "FROM_EMAIL": "info@leadwithfx.com",
     "ALERT_EMAIL": "leadwithfx@gmail.com",
     "BREVO_LIST_ID": "3"
+    // Insights newsletter: create a Brevo list, then add "INSIGHTS_LIST_ID": "<its number>" here and push. Signup stays off until then.
     // Test mode: add "DRY_RUN": "1" here (and push) to build reports without sending anything.
   },
   "ratelimits": [

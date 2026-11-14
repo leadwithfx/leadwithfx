@@ -44,6 +44,19 @@
 <div class="posts" id="posts">
   <p class="posts-empty">The first articles are on their way. In the meantime, <a href="quiz.html">take the Clarity Check</a> or <a href="index.html#book">book a free intro call</a>.</p>
 </div>
+<section class="subscribe" id="subscribe" aria-labelledby="sub-h" hidden>
+  <h2 id="sub-h">Get new articles by email</h2>
+  <p>One short email when I publish something new. No spam, and you can unsubscribe at any time.</p>
+  <form id="sub-form" novalidate>
+    <label for="sub-email">Email address</label>
+    <input id="sub-email" type="email" autocomplete="email" required>
+    <input id="sub-hp" class="hp" type="text" tabindex="-1" autocomplete="off" aria-hidden="true">
+    <label class="sub-consent"><input id="sub-ok" type="checkbox"> I agree to receive emails from Freddie Xavier, Lead with FX. <a href="privacy.html#insights-emails">Privacy</a></label>
+    <div id="sub-ts"></div>
+    <button class="btn" type="submit">Subscribe</button>
+    <p id="sub-msg" role="status" aria-live="polite"></p>
+  </form>
+</section>
 </div></main>
 <footer class="footer">
   <div class="wrap footer-inner">
@@ -52,4 +65,5 @@
   </div>
 </footer>
 <script src="nav.js" defer></script>
+<script src="subscribe.js" defer></script>
 </body></html>

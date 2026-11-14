@@ -8,6 +8,7 @@
 //   BREVO_API_KEY (secret)
 //   FROM_EMAIL (a sender verified in Brevo, e.g. hello@leadwithfx.com)
 //   ALERT_EMAIL (where lead alerts go)   BREVO_LIST_ID (number, the pipeline list)
+//   INSIGHTS_LIST_ID (number, the Insights newsletter list; signup is off until set)
 //   DB (D1 binding, optional): retry outbox for failed Brevo calls; see schema.sql and the cron trigger in wrangler.jsonc
 //   Optional: DRY_RUN=1 (builds the report but sends nothing)
 //   Abuse protection (each is optional and switches on when set):
@@ -255,6 +256,20 @@ export async function humanOk(env, token, ip) {
   } catch { return false; }
 }
 
+// Insights email signup: one email address, explicit tick, human check, added to its own Brevo list.
+export async function subscribe(env, body, ip, origin) {
+  if (body.hp) return json({ error: "request" }, 400, origin);
+  const email = typeof body.email === "string" ? body.email.trim() : "";
+  if (body.consent_news !== true || email.length > 254 || !/^[^\s@<>"]+@[^\s@<>"]+\.[^\s@<>"]+$/.test(email)) return json({ error: "request" }, 400, origin);
+  if (!(await humanOk(env, body.ts, ip))) return json({ error: "human" }, 403, origin);
+  if (!env.INSIGHTS_LIST_ID || !env.BREVO_API_KEY) return json({ error: "off" }, 503, origin);
+  if (env.DRY_RUN === "1") return json({ ok: true, dry: true }, 200, origin);
+  const today = new Date().toISOString().slice(0, 10);
+  const r = await deliver(env, "contacts", { email, attributes: { SOURCE: "Insights signup", CONSENT_DATE: today }, listIds: [Number(env.INSIGHTS_LIST_ID)], updateEnabled: true });
+  if (r === "failed") return json({ error: "send" }, 502, origin);
+  return json({ ok: true }, 200, origin);
+}
+
 export default {
   async fetch(request, env) {
     const origin = request.headers.get("Origin") || "";
@@ -274,6 +289,7 @@ export default {
       if (raw.length > MAX_BODY) return json({ error: "size" }, 413, origin);
       body = JSON.parse(raw);
     } catch { return json({ error: "json" }, 400, origin); }
+    if (body && body.stage === "subscribe") return subscribe(env, body, ip, origin);
     const req = validateRequest(body);
     if (!req) return json({ error: "request" }, 400, origin);
     if (req.stage === "request") {
