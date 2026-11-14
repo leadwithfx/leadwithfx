@@ -487,3 +487,6 @@ h1,h2,h3,.brand-name,.statement-text,.quote-head,.quote-after,.quiz legend,.meth
 .theme-switch button[aria-pressed="true"]{background:var(--gold);color:#12294D}
 .theme-switch button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 @media (max-width:480px){.theme-switch button{width:26px;height:26px}.theme-switch button svg{width:14px;height:14px}}
+
+/* Logo: a gold ring with a thin light inner edge so the navy tile reads on light and dark */
+.logo-img{border-radius:12px;box-shadow:0 0 0 2px var(--gold),0 0 0 3px rgba(255,255,255,.35)}
