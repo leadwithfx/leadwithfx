@@ -17,6 +17,7 @@ const server = createServer((req, res) => {
 const base = "http://127.0.0.1:" + server.address().port;
 
 const pages = ["/index.html", "/quiz.html", "/insights.html", "/privacy.html", "/terms.html"];
+process.on("unhandledRejection", (e) => { console.log("::error title=a11y crashed::" + String(e && e.stack || e).replace(/\n/g, " | ").slice(0, 900)); process.exit(1); });
 const browser = await chromium.launch();
 let fails = 0;
 for (const path of pages) {
