@@ -8,6 +8,7 @@
 //   BREVO_API_KEY (secret)
 //   FROM_EMAIL (a sender verified in Brevo, e.g. hello@leadwithfx.com)
 //   ALERT_EMAIL (where lead alerts go)   BREVO_LIST_ID (number, the pipeline list)
+//   DB (D1 binding, optional): retry outbox for failed Brevo calls; see schema.sql and the cron trigger in wrangler.jsonc
 //   Optional: DRY_RUN=1 (builds the report but sends nothing)
 //   Abuse protection (each is optional and switches on when set):
 //     TURNSTILE_SECRET (secret)  Cloudflare Turnstile secret key: requires a human check token from the quiz page
@@ -173,6 +174,55 @@ async function brevo(env, path, payload) {
   });
 }
 
+// Reliable delivery: a failed Brevo call is kept in a small D1 "outbox" and retried by the cron trigger.
+// Rows exist only while a call is failing (deleted on success), so nothing is stored in normal operation.
+const MAX_ATTEMPTS = 8, DEAD_KEEP_MS = 7 * 24 * 3600 * 1000;
+const backoff = (attempts) => Math.min(3600 * 1000, 60 * 1000 * 2 ** (attempts - 1));
+const retriable = (status) => status === 0 || status === 429 || status >= 500;
+const log = (event, data) => console.log(JSON.stringify({ event, ...data }));
+
+async function trySend(env, path, payload) {
+  try { const r = await brevo(env, path, payload); return { ok: r.ok, status: r.status }; }
+  catch { return { ok: false, status: 0 }; }
+}
+
+// Returns "sent", "queued" (will be retried) or "failed" (not sent and not retryable).
+export async function deliver(env, path, payload, now = Date.now()) {
+  const r = await trySend(env, path, payload);
+  if (r.ok) return "sent";
+  log("send_failed", { path, status: r.status });
+  if (env.DB && retriable(r.status)) {
+    try {
+      await env.DB.prepare("INSERT INTO outbox (id, path, payload, status, attempts, next_at, last_error, created_at) VALUES (?, ?, ?, 'pending', 1, ?, ?, ?)")
+        .bind(crypto.randomUUID(), path, JSON.stringify(payload), now + backoff(1), "status " + r.status, now).run();
+      log("outbox_queued", { path });
+      return "queued";
+    } catch { log("outbox_write_failed", { path }); }
+  }
+  return "failed";
+}
+
+// Run by the cron trigger: retry due rows with exponential backoff, give up after MAX_ATTEMPTS.
+export async function processOutbox(env, now = Date.now(), limit = 20) {
+  const out = { sent: 0, retried: 0, dead: 0 };
+  if (!env.DB || !env.BREVO_API_KEY || env.DRY_RUN === "1") return out;
+  const { results } = await env.DB.prepare("SELECT id, path, payload, attempts FROM outbox WHERE status = 'pending' AND next_at <= ? ORDER BY next_at LIMIT ?").bind(now, limit).all();
+  for (const row of results || []) {
+    const r = await trySend(env, row.path, JSON.parse(row.payload));
+    if (r.ok) { await env.DB.prepare("DELETE FROM outbox WHERE id = ?").bind(row.id).run(); out.sent++; log("outbox_sent", { path: row.path, attempts: row.attempts + 1 }); continue; }
+    const attempts = row.attempts + 1;
+    if (!retriable(r.status) || attempts >= MAX_ATTEMPTS) {
+      await env.DB.prepare("UPDATE outbox SET status = 'dead', attempts = ?, last_error = ? WHERE id = ?").bind(attempts, "status " + r.status, row.id).run();
+      out.dead++; log("outbox_dead", { path: row.path, attempts, status: r.status });
+    } else {
+      await env.DB.prepare("UPDATE outbox SET attempts = ?, next_at = ?, last_error = ? WHERE id = ?").bind(attempts, now + backoff(attempts), "status " + r.status, row.id).run();
+      out.retried++;
+    }
+  }
+  await env.DB.prepare("DELETE FROM outbox WHERE status = 'dead' AND created_at < ?").bind(now - DEAD_KEEP_MS).run();
+  return out;
+}
+
 const MAX_BODY = 4096;
 
 const b64u = (buf) => btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
@@ -244,12 +294,11 @@ export default {
     if (wants) {
       const subject = "Wants full report and call: " + req.name + ", " + a.band.title;
       if (dry) return json({ ok: true, dry: true, subject, stage: "request" }, 200, origin);
-      const mine = await brevo(env, "smtp/email", { sender, replyTo: { email: req.email, name: req.name }, to, subject,
+      const mine = await deliver(env, "smtp/email", { sender, replyTo: { email: req.email, name: req.name }, to, subject,
         htmlContent: lead + '<p style="font-family:Arial,sans-serif;font-size:14px">The full report was in the earlier "New lead" email for this person.</p>', textContent: rowsText + "\n\nThe full report was in the earlier New lead email for this person." });
-      if (!mine.ok) return json({ error: "send" }, 502, origin);
-      try {
-        await brevo(env, "contacts", { email: req.email, attributes: attrs, listIds: env.BREVO_LIST_ID ? [Number(env.BREVO_LIST_ID)] : [], updateEnabled: true });
-      } catch { /* the request already reached Freddie */ }
+      if (mine === "failed") return json({ error: "send" }, 502, origin);
+      // Saving the contact is retried too, so a lead is not lost from the pipeline if Brevo has a bad moment.
+      await deliver(env, "contacts", { email: req.email, attributes: attrs, listIds: env.BREVO_LIST_ID ? [Number(env.BREVO_LIST_ID)] : [], updateEnabled: true });
       return json({ ok: true }, 200, origin);
     }
 
@@ -258,13 +307,15 @@ export default {
     const tok = await makeToken(env, req.email);
     if (dry) return json({ ok: true, dry: true, subject: report.subject, html: report.html, text: report.text, tok }, 200, origin);
 
-    const mine = await brevo(env, "smtp/email", { sender, replyTo: { email: req.email, name: req.name }, to,
+    // Each email is delivered (or queued for retry) on its own, so a retry never sends the other one twice.
+    const mine = await deliver(env, "smtp/email", { sender, replyTo: { email: req.email, name: req.name }, to,
       subject: "New lead: " + req.name + ", " + a.band.title, htmlContent: lead + ownerCopy.html, textContent: rowsText + "\n\n" + ownerCopy.text });
-    if (!mine.ok) return json({ error: "send" }, 502, origin);
-    // The visitor only gets their report if the address is real.
-    const theirs = await brevo(env, "smtp/email", { sender, replyTo: { email: "leadwithfx@gmail.com", name: "Freddie Xavier" },
+    const theirs = await deliver(env, "smtp/email", { sender, replyTo: { email: "leadwithfx@gmail.com", name: "Freddie Xavier" },
       to: [{ email: req.email, name: req.name }], subject: report.subject, htmlContent: report.html, textContent: report.text });
-    if (!theirs.ok) return json({ error: "send" }, 502, origin);
-    return json({ ok: true, tok }, 200, origin);
+    if (mine === "failed" || theirs === "failed") return json({ error: "send" }, 502, origin);
+    return json({ ok: true, tok, ...(mine === "queued" || theirs === "queued" ? { queued: true } : {}) }, 200, origin);
+  },
+  async scheduled(event, env, ctx) {
+    ctx.waitUntil(processOutbox(env).then((r) => log("outbox_run", r)));
   },
 };

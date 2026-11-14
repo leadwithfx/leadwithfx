@@ -1,5 +1,8 @@
-import w, { validate, validateRequest, analyse, buildReport, reflect, makeToken, tokenOk } from "./index.js";
+import w, { deliver, processOutbox, validate, validateRequest, analyse, buildReport, reflect, makeToken, tokenOk } from "./index.js";
 import { writeFileSync } from "node:fs";
+let DatabaseSync = null;
+try { ({ DatabaseSync } = await import("node:sqlite")); } catch { /* older Node: outbox tests are skipped, the CI workflow runs them on Node 22 */ }
+import { readFileSync } from "node:fs";
 let fails = 0;
 const t = (name, ok) => { console.log((ok ? "PASS " : "FAIL ") + name); if (!ok) fails++; };
 const ans = [2, 1, 1, 3, 2, 3, 2, 3];
@@ -99,6 +102,48 @@ t("bad request 400", r.status === 400);
   seen.length = 0;
   await w.fetch(mk(ORI, { ...base, email: "bad" }), { DRY_RUN: "1", TURNSTILE_SECRET: "s" });
   t("no AI service is ever called", !seen.some((u) => u.includes("anthropic")));
+}
+
+// Retry outbox, run against a real SQL engine (node:sqlite) using the repo's schema.sql
+if (!DatabaseSync) console.log("SKIP outbox tests (needs Node 22.5+)");
+else {
+  const sql = new DatabaseSync(":memory:");
+  sql.exec(readFileSync(new URL("./schema.sql", import.meta.url), "utf8"));
+  const DB = { prepare: (q) => { const st = sql.prepare(q); let args = []; const o = { bind: (...a) => { args = a; return o; }, run: async () => { st.run(...args); return {}; }, all: async () => ({ results: st.all(...args) }) }; return o; } };
+  const count = (where = "1=1") => sql.prepare("SELECT COUNT(*) AS n FROM outbox WHERE " + where).get().n;
+  const env = { BREVO_API_KEY: "b", FROM_EMAIL: "f@x.com", DB };
+  let mode = 503;
+  globalThis.fetch = async () => (mode === "throw" ? Promise.reject(new Error("net")) : new Response("{}", { status: mode }));
+  const P = { to: [{ email: "a@b.c" }], subject: "s" };
+  const T0 = 1_000_000;
+  t("outbox: success sends and stores nothing", (mode = 201, await deliver(env, "smtp/email", P, T0)) === "sent" && count() === 0);
+  t("outbox: 503 is queued", (mode = 503, await deliver(env, "smtp/email", P, T0)) === "queued" && count("status='pending'") === 1);
+  t("outbox: network error is queued", (mode = "throw", await deliver(env, "smtp/email", P, T0)) === "queued" && count() === 2);
+  t("outbox: 400 is not retried", (mode = 400, await deliver(env, "smtp/email", P, T0)) === "failed" && count() === 2);
+  t("outbox: no DB means failed, as before", (mode = 503, await deliver({ ...env, DB: undefined }, "smtp/email", P, T0)) === "failed");
+  mode = 503;
+  let r1 = await processOutbox(env, T0 + 1000);
+  t("outbox: not retried before its time", r1.sent + r1.retried + r1.dead === 0);
+  r1 = await processOutbox(env, T0 + 61_000);
+  t("outbox: still failing is rescheduled with backoff", r1.retried === 2 && count("attempts=2") === 2 && count("next_at > " + (T0 + 61_000 + 100_000)) === 2);
+  mode = 201;
+  r1 = await processOutbox(env, T0 + 10 * 60_000);
+  t("outbox: recovered sends are delivered and deleted", r1.sent === 2 && count() === 0);
+  mode = 503;
+  await deliver(env, "smtp/email", P, T0);
+  let now = T0, dead = 0;
+  for (let i = 0; i < 12; i++) { now += 3_600_000; const r2 = await processOutbox(env, now); dead += r2.dead; }
+  t("outbox: gives up after 8 attempts and keeps the row as dead", dead === 1 && count("status='dead'") === 1 && count("status='pending'") === 0);
+  await processOutbox(env, now + 8 * 24 * 3600 * 1000);
+  t("outbox: dead rows are purged after 7 days", count() === 0);
+  mode = 400;
+  await deliver({ ...env, DB }, "smtp/email", P, T0);
+  t("outbox: permanent errors never enter the queue", count() === 0);
+  // end to end: owner email succeeds, visitor email fails, only the visitor email is queued
+  let n = 0; globalThis.fetch = async () => new Response("{}", { status: ++n === 1 ? 201 : 503 });
+  const rr = await w.fetch(mk(ORI, base), env); const jj = await rr.json();
+  t("outbox: step 1 partial failure queues only the failed email and still answers ok", rr.status === 200 && jj.ok && jj.queued && count() === 1);
+  t("outbox: DRY_RUN never touches the outbox", (await processOutbox({ ...env, DRY_RUN: "1" }, T0 + 99 * 3600_000)).sent === 0);
 }
 console.log(fails ? fails + " FAILED" : "ALL PASSED");
 process.exit(fails ? 1 : 0);
