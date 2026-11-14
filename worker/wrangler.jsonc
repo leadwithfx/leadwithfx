@@ -8,9 +8,8 @@
   "vars": {
     "FROM_EMAIL": "info@leadwithfx.com",
     "ALERT_EMAIL": "leadwithfx@gmail.com",
-    "BREVO_LIST_ID": "3",
-    // Test mode: builds reports but sends nothing. Delete this line (and push) to go live.
-    "DRY_RUN": "1"
+    "BREVO_LIST_ID": "3"
+    // Test mode: add "DRY_RUN": "1" here (and push) to build reports without sending anything.
   },
   "ratelimits": [
     { "name": "LIMITER", "namespace_id": "1001", "simple": { "limit": 3, "period": 60 } }
