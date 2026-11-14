@@ -1,9 +1,9 @@
-import w, { validate, validateRequest, analyse, buildReport, buildConfirmation, fallbackReflection } from "./index.js";
+import w, { validate, validateRequest, analyse, buildReport, buildConfirmation, fallbackReflection, makeToken, tokenOk } from "./index.js";
 import { writeFileSync } from "node:fs";
 let fails = 0;
 const t = (name, ok) => { console.log((ok ? "PASS " : "FAIL ") + name); if (!ok) fails++; };
 const ans = [2, 1, 1, 3, 2, 3, 2, 3];
-const base = { a: ans, name: "Sam", email: "sam@example.com", consent_report: true, consent_contact: true, hp: "" };
+const base = { a: ans, name: "Sam", email: "sam@example.com", consent_report: true, hp: "" };
 const mk = (origin, body) => new Request("https://x/", { method: "POST", headers: { Origin: origin, "content-type": "application/json" }, body: JSON.stringify(body) });
 const ORI = "https://leadwithfx.com";
 
@@ -16,7 +16,7 @@ t("bad email rejected", !validateRequest({ ...base, email: "nope" }));
 t("empty name rejected", !validateRequest({ ...base, name: "  " }));
 t("html in name rejected", !validateRequest({ ...base, name: "<b>x" }));
 t("honeypot rejected", !validateRequest({ ...base, hp: "bot" }));
-t("contact flag optional", validateRequest({ ...base, consent_contact: undefined }).contact === false);
+t("stage defaults to result", validateRequest(base).stage === "result" && validateRequest({ ...base, stage: "request" }).stage === "request");
 
 const a = analyse(ans);
 t("band computed", a.band.title === "Take the step");
@@ -46,10 +46,23 @@ let j = await r.json();
 t("dry run returns report, sends nothing", r.status === 200 && j.dry && j.html && !calls.some((c) => c.includes("brevo")));
 calls.length = 0;
 r = await w.fetch(mk(ORI, base), { BREVO_API_KEY: "b", FROM_EMAIL: "hello@leadwithfx.com", ALERT_EMAIL: "me@x.com", BREVO_LIST_ID: "3", ANTHROPIC_API_KEY: "k" });
-t("live path: lead report + confirmation + contact", r.status === 200 && calls.filter((c) => c.includes("brevo")).length === 3);
+t("step 1: lead report + confirmation, nothing stored", r.status === 200 && calls.filter((c) => c.includes("brevo")).length === 2 && !calls.some((c) => c.includes("contacts")));
 calls.length = 0;
-r = await w.fetch(mk(ORI, { ...base, consent_contact: false }), { BREVO_API_KEY: "b", FROM_EMAIL: "hello@leadwithfx.com", ALERT_EMAIL: "me@x.com" });
-t("no tick: lead report + confirmation, nothing stored", r.status === 200 && calls.filter((c) => c.includes("brevo")).length === 2 && !calls.some((c) => c.includes("contacts")));
+r = await w.fetch(mk(ORI, { ...base, stage: "request" }), { BREVO_API_KEY: "b", FROM_EMAIL: "hello@leadwithfx.com", ALERT_EMAIL: "me@x.com", BREVO_LIST_ID: "3" });
+t("step 2: alert + contact saved, no AI call", r.status === 200 && calls.filter((c) => c.includes("brevo")).length === 2 && calls.some((c) => c.includes("contacts")) && !calls.some((c) => c.includes("anthropic")));
+// step 2 proof token
+const TS = { TURNSTILE_SECRET: "s", BREVO_API_KEY: "b", FROM_EMAIL: "f@x.com" };
+const tk = await makeToken(TS, "sam@example.com");
+t("token round trip", await tokenOk(TS, "sam@example.com", tk) && await tokenOk(TS, "SAM@example.com", tk));
+t("token wrong email rejected", !(await tokenOk(TS, "other@example.com", tk)));
+t("token tampered rejected", !(await tokenOk(TS, "sam@example.com", tk.slice(0, -2) + "xx")));
+t("token expired rejected", !(await tokenOk(TS, "sam@example.com", tk, Date.now() + 2 * 3600 * 1000)));
+t("no token rejected when check is on", !(await tokenOk(TS, "sam@example.com", "")));
+calls.length = 0;
+r = await w.fetch(mk(ORI, { ...base, stage: "request" }), TS);
+t("step 2 without token: 403", r.status === 403 && calls.length === 0);
+r = await w.fetch(mk(ORI, { ...base, stage: "request", tok: tk }), TS);
+t("step 2 with token: 200", r.status === 200);
 globalThis.fetch = async () => new Response("no", { status: 500 });
 r = await w.fetch(mk(ORI, base), { BREVO_API_KEY: "b", FROM_EMAIL: "f@x.com" });
 t("send failure returns 502", r.status === 502);

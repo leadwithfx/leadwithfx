@@ -13,7 +13,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,WONK@9..144,500..600,0&family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=20261116">
+<link rel="stylesheet" href="styles.css?v=20261117">
 <script data-goatcounter="https://leadwithfx.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 <meta property="og:title" content="Clarity Check | Lead with FX"><meta property="og:image" content="https://leadwithfx.com/og.png">
 </head><body>
@@ -70,8 +70,11 @@
     </ul>
   </div>
   <div class="r-box r-offer" id="r-offer"><strong>Your full Clarity Report is being prepared</strong>
-    <p>I have your answers. Book a free intro call and I'll share the full report with you there. We'll go through it together, talk about what you're looking for, and agree whether I can help.</p>
-    <p><a class="btn btn-gold" href="https://calendly.com/freddie-rx" target="_blank" rel="noopener" id="r-book2">Book a free intro call</a></p>
+    <p>I have your answers. On a free intro call I'll share the full report with you, we'll talk about what you're looking for, and agree whether I can help.</p>
+    <label class="q-opt rp-ck"><input type="checkbox" id="r-c3"><span>Yes, prepare my full Clarity Report and let Freddie contact me to arrange a call.</span></label>
+    <p><button id="r-go" class="btn btn-gold" type="button" disabled>Send my details and book my intro call</button></p>
+    <p id="r-note" class="r-small" role="status" hidden></p>
+    <p class="r-small">Prefer to skip that? <a id="r-book2" href="https://calendly.com/freddie-rx" target="_blank" rel="noopener">Just book a time</a>.</p>
   </div>
   <div class="r-actions"><button id="q-again" class="btn btn-outline" type="button">Retake the check</button></div>
   <p class="q-fine">This is a reflection tool, not an assessment or a diagnosis.</p>
@@ -87,9 +90,8 @@
     <label for="rp-email">Email</label>
     <input id="rp-email" type="email" inputmode="email" autocomplete="email" maxlength="254">
     <input id="rp-hp" class="hp" type="text" tabindex="-1" autocomplete="off" aria-hidden="true">
-    <label class="q-opt rp-ck"><input type="checkbox" id="rp-c1"><span>Send my answers to Freddie so he can prepare my full report, and email me a confirmation. (required)</span></label>
-    <label class="q-opt rp-ck"><input type="checkbox" id="rp-c2"><span>Yes, Freddie can contact me personally about coaching. No newsletter. (optional)</span></label>
-    <p class="q-fine">I use your email to send you a confirmation and to prepare your report. If you tick the second box, I'll also keep your details so I can follow up with you one to one. You can ask me to delete them at any time. See the <a href="privacy.html#clarity-report">privacy page</a>.</p>
+    <label class="q-opt rp-ck"><input type="checkbox" id="rp-c1"><span>I agree to Freddie using my answers and email to show my result and send me a confirmation. (required)</span></label>
+    <p class="q-fine">I use your email to show your result and send you a confirmation. I only follow up with you if you ask me to on the next screen. You can ask me to delete your details at any time. See the <a href="privacy.html#clarity-report">privacy page</a>.</p>
     <div id="rp-ts" class="rp-ts"></div>
     <p id="rp-err" class="rp-err" role="alert" hidden></p>
     <div class="q-nav"><button id="rp-back" class="btn btn-outline" type="button">Back</button><button id="rp-send" class="btn btn-gold" type="submit">See my result</button></div>
@@ -187,7 +189,7 @@ function finish(){
   var w=HELP[(ans[2]||4)-1];
   $("r-help-h").textContent=w.h;$("r-help-p").textContent=w.p;
   var url="https://calendly.com/freddie-rx?a1="+encodeURIComponent("Clarity Check: "+r.title+". Profile: "+Q[0].o[(ans[0]||4)-1]+". Coaching before: "+Q[1].o[(ans[1]||1)-1]+". What helped before: "+Q[2].o[(ans[2]||4)-1]+".");
-  $("r-book2").href=url;$("s-book").href=url;
+  $("r-book2").href=url;bookUrl=url;$("s-book").href=url;
   var full=!LIVE;
   $("r-offer").hidden=full;$("r-teaser").hidden=full;$("r-body").hidden=false;$("r-stepbox").hidden=!full;
   $("r-eyebrow").textContent=r.eyebrow;$("r-title").textContent=r.title;$("r-body").textContent=r.body;
@@ -201,9 +203,9 @@ function finish(){
 $("q-start").addEventListener("click",function(){i=0;ans=[];resetReport();show(run);render();ping("quiz-start")});
 $("q-again").addEventListener("click",function(){i=0;ans=[];resetReport();show(intro)});
 var EMAIL_RE=/^[^\s@<>"]+@[^\s@<>"]+\.[^\s@<>"]+$/;
-function resetReport(){try{resetTs()}catch(e){}["rp-name","rp-email","rp-hp"].forEach(function(k){$(k).value=""});$("rp-c1").checked=false;$("rp-c2").checked=false;$("rp-err").hidden=true;$("rp-send").disabled=false;$("rp-send").textContent="See my result"}
+function resetReport(){try{resetTs()}catch(e){}["rp-name","rp-email","rp-hp"].forEach(function(k){$(k).value=""});$("rp-c1").checked=false;ctx=null;if($("r-c3")){$("r-c3").checked=false;$("r-go").disabled=true;$("r-note").hidden=true}$("rp-err").hidden=true;$("rp-send").disabled=false;$("rp-send").textContent="See my result"}
 function rpError(msg,id){var e=$("rp-err");e.textContent=msg;e.hidden=false;if(id)$(id).focus()}
-var tsId=null,tsTok="";
+var tsId=null,tsTok="",ctx=null,bookUrl="https://calendly.com/freddie-rx";
 function loadTs(){
   if(!TURNSTILE_SITEKEY||!REPORT_ENDPOINT)return;
   function draw(){if(tsId===null&&window.turnstile){tsId=window.turnstile.render("#rp-ts",{sitekey:TURNSTILE_SITEKEY,callback:function(t){tsTok=t},"expired-callback":function(){tsTok=""},"error-callback":function(){tsTok=""}})}}
@@ -219,20 +221,29 @@ $("rp-form").addEventListener("submit",function(e){
   var name=$("rp-name").value.trim(),email=$("rp-email").value.trim();
   if(!name)return rpError("Enter your first name.","rp-name");
   if(!EMAIL_RE.test(email))return rpError("Enter a valid email address.","rp-email");
-  if(!$("rp-c1").checked)return rpError("Tick the first box to see your result.","rp-c1");
-  var contact=$("rp-c2").checked;
-  function done(test){finish();ping("report-sent");if(contact)ping("report-contact-optin")}
-  if(!REPORT_ENDPOINT){done(true);return}
+  if(!$("rp-c1").checked)return rpError("Tick the box to see your result.","rp-c1");
+  function done(tok){ctx={name:name,email:email,tok:tok||""};finish();ping("report-sent")}
+  if(!REPORT_ENDPOINT){done("");return}
   if(TURNSTILE_SITEKEY&&!tsTok)return rpError("Please wait a moment for the quick check above to finish, then try again.");
   var btn=$("rp-send");btn.disabled=true;btn.textContent="Sending\u2026";
   var ctrl=window.AbortController?new AbortController():null,t=setTimeout(function(){if(ctrl)ctrl.abort()},20000);
-  fetch(REPORT_ENDPOINT,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({a:ans,name:name,email:email,consent_report:true,consent_contact:contact,hp:$("rp-hp").value,ts:tsTok}),signal:ctrl?ctrl.signal:undefined})
+  fetch(REPORT_ENDPOINT,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({a:ans,name:name,email:email,consent_report:true,stage:"result",hp:$("rp-hp").value,ts:tsTok}),signal:ctrl?ctrl.signal:undefined})
    .then(function(r){if(r.status===429){var e=new Error("slow");e.slow=1;throw e}return r.ok?r.json():Promise.reject()})
-   .then(function(d){clearTimeout(t);if(d&&d.ok){done(false)}else{return Promise.reject()}})
+   .then(function(d){clearTimeout(t);if(d&&d.ok){done(d.tok)}else{return Promise.reject()}})
    .catch(function(err){clearTimeout(t);resetTs();btn.disabled=false;btn.textContent="See my result";rpError(err&&err.slow?"That's a lot of requests from this connection. Please wait a minute and try again.":"Couldn't send that. Check your email address and try again.")});
 });
 $("s-assess").addEventListener("click",function(){ping("quiz-assess-click")});
 $("r-book2").addEventListener("click",function(){ping("quiz-book-click")});
+$("r-c3").addEventListener("change",function(){$("r-go").disabled=!this.checked});
+$("r-go").addEventListener("click",function(){
+  if(!$("r-c3").checked||!ctx)return;
+  var btn=$("r-go"),note=$("r-note");btn.disabled=true;
+  window.open(bookUrl,"_blank","noopener");ping("quiz-book-click");
+  fetch(REPORT_ENDPOINT,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({a:ans,name:ctx.name,email:ctx.email,consent_report:true,stage:"request",tok:ctx.tok,hp:""})})
+   .then(function(r){return r.ok?r.json():Promise.reject()})
+   .then(function(d){if(!(d&&d.ok))return Promise.reject();note.textContent="Thanks, I have your request. I'll prepare your full report and look forward to talking.";note.hidden=false;btn.textContent="Request sent";ping("report-requested")})
+   .catch(function(){btn.disabled=false;note.textContent="I couldn't send that just now, but your booking page is open. Pick a time and I'll have your answers from the booking.";note.hidden=false});
+});
 })();
 </script>
 <script src="nav.js" defer></script>
