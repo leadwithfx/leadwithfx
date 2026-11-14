@@ -27,3 +27,11 @@ Remove any registrar parking page or forwarding. DNS can take minutes to a few h
 - `robots.txt` blocks known AI training and scraping bots; `noai, noimageai` robots tags and a `tdm-reservation` notice (`.well-known/tdmrep.json`) are on every page. These are requests: well-behaved bots obey them, bad ones don't.
 - `terms.html` states that the content can't be copied or used for AI training. Have an adviser read it, alongside the privacy page.
 - Quiz and Worker protection (spend limit, Turnstile, rate limit): see `worker/README.md`.
+
+## Writing an Insights post
+
+1. Copy `content/insights/_example.md` to a new file, e.g. `content/insights/getting-unstuck.md`.
+2. Fill in the front matter (`title`, `date` as YYYY-MM-DD, `summary`, optional `tags`) and write in Markdown. Remove `draft: true` to publish.
+3. Run `node scripts/build-insights.mjs`, then commit the generated files. CI fails if the output is stale.
+
+The build creates the post page, the list and search box on `insights.html`, `insights/search-index.json` and the sitemap entry. Search runs in the browser; nothing about a visitor's search leaves the page.

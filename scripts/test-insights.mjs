@@ -1,0 +1,23 @@
+// Unit tests for the Insights Markdown converter. Run: node scripts/test-insights.mjs
+import { mdToHtml, parseFront, readMins, slugOf, fmtDate } from "./insights-lib.mjs";
+let fails = 0;
+const eq = (name, got, want) => { if (got !== want) { console.log("FAIL " + name + "\n  got:  " + JSON.stringify(got) + "\n  want: " + JSON.stringify(want)); fails++; } else console.log("ok   " + name); };
+eq("paragraph + bold/italic/code", mdToHtml("A **b** and *i* and `c`."), "<p>A <strong>b</strong> and <em>i</em> and <code>c</code>.</p>");
+eq("heading levels", mdToHtml("## H2\n### H3"), "<h2>H2</h2>\n<h3>H3</h3>");
+eq("bullet list", mdToHtml("- a\n- b"), "<ul><li>a</li><li>b</li></ul>");
+eq("numbered list", mdToHtml("1. a\n2. b"), "<ol><li>a</li><li>b</li></ol>");
+eq("quote", mdToHtml("> hi\n> there"), "<blockquote><p>hi there</p></blockquote>");
+eq("external link is safe", mdToHtml("[x](https://e.com)"), '<p><a href="https://e.com" target="_blank" rel="noopener">x</a></p>');
+eq("internal link", mdToHtml("[x](../quiz.html)"), '<p><a href="../quiz.html">x</a></p>');
+eq("script is escaped", mdToHtml("<script>alert(1)</script>"), "<p>&lt;script&gt;alert(1)&lt;/script&gt;</p>");
+eq("javascript: links dropped", mdToHtml("[x](javascript:alert(1))"), "<p>x</p>");
+eq("code block escaped", mdToHtml("```\n<b>\n```"), "<pre><code>&lt;b&gt;</code></pre>");
+const f = parseFront("---\ntitle: \"T\"\ndate: 2026-01-02\ntags: [a, b]\ndraft: true\n---\nbody");
+eq("front matter", JSON.stringify(f.meta), '{"title":"T","date":"2026-01-02","tags":["a","b"],"draft":true}');
+eq("front matter body", f.body, "body");
+eq("missing front matter throws", (() => { try { parseFront("no"); return "no"; } catch { return "throws"; } })(), "throws");
+eq("reading time min 1", readMins("short"), 1);
+eq("slug", slugOf("My First Post!.md"), "my-first-post");
+eq("date format", fmtDate("2026-11-14"), "14 November 2026");
+console.log(fails ? fails + " FAILED" : "ALL PASSED");
+process.exit(fails ? 1 : 0);

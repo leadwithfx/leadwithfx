@@ -26,6 +26,11 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with: { node-version: 22 }
+      - run: node scripts/test-insights.mjs
+      - name: Insights output is up to date
+        run: |
+          node scripts/build-insights.mjs
+          git diff --exit-code -- insights insights.html sitemap.xml || (echo '::error::Run node scripts/build-insights.mjs and commit the result' && exit 1)
       - run: node scripts/check-site.mjs
 
   accessibility:
