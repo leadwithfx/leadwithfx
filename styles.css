@@ -540,3 +540,21 @@ h1,h2,h3,.brand-name,.statement-text,.quote-head,.quote-after,.quiz legend,.meth
 .step-actions .btn{padding:13px 22px;font-size:13px;border:2px solid var(--gold)}.step-actions .btn-outline{border-color:var(--ink)}
 .footer-social{display:inline-flex;align-items:center}.footer-social svg{display:block}
 .faq-list details[id]{scroll-margin-top:120px}
+.msgbox{margin-top:16px}
+.msgbox form{display:flex;flex-direction:column;gap:10px;max-width:520px}
+.msg-step{display:flex;flex-direction:column;gap:10px}
+.msgbox label{font-weight:700;font-size:15px;color:var(--ink)}
+.msgbox input[type=text],.msgbox input[type=email],.msgbox textarea{width:100%;padding:12px 14px;font-size:17px;border-radius:10px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);font-family:inherit;box-sizing:border-box}
+.msgbox textarea{resize:vertical;min-height:120px}
+.msgbox input:focus,.msgbox textarea:focus{outline:3px solid var(--gold);outline-offset:2px}
+.msgbox .msg-consent{display:flex;gap:10px;align-items:flex-start;font-weight:400;font-size:14px}
+.msgbox .msg-consent input{margin-top:3px;width:auto}
+.msgbox .hp{position:absolute;left:-9999px;width:1px;height:1px;opacity:0}
+.msgbox .btn{align-self:flex-start;cursor:pointer;border:2px solid var(--gold)}
+.msgbox .msg-row{display:flex;flex-wrap:wrap;gap:16px;align-items:center}
+.msgbox .btn-link{background:none;border:0;padding:8px 0;color:var(--ink);text-decoration:underline;font:inherit;cursor:pointer}
+#msg-code{max-width:200px;font-size:22px;letter-spacing:.2em}
+#msg-status,#msg-done{margin:0;font-size:15px;color:var(--ink-soft)}
+#msg-done{font-weight:700;color:var(--ink)}
+.msgbox p{padding:0}.msgbox #msg-sent-to{font-size:15px;line-height:1.55}
+.msgbox .btn{font-family:inherit}

@@ -65,3 +65,8 @@ If Brevo is down or slow, a failed send is not lost. The Worker saves just that 
 ## Continuous integration
 
 `.github/workflows/ci.yml` runs on every push and pull request: Worker tests (including the outbox against a real SQL engine), site checks (`scripts/check-site.mjs`: links, metadata, alt text), accessibility (`scripts/a11y.mjs`, axe) and a Lighthouse budget (`lighthouserc.json`). To make them gates, turn on branch protection for `main` and require these four checks.
+
+
+## "Drop me a message" (contact form)
+
+The contact FAQ on the homepage has a form (`contact.js`). Step 1 (`msg_code`) checks the human check, then emails a 6-digit code to the visitor. Step 2 (`msg_send`) checks the code and only then emails the message to `ALERT_EMAIL`, with the visitor as reply-to, and sends the visitor a copy. Nothing is stored: the code is bound to the name, email and message by a signed token (HMAC with `TURNSTILE_SECRET`) that the page holds for 10 minutes. It needs `BREVO_API_KEY`, `FROM_EMAIL` and `TURNSTILE_SECRET`; if any is missing the Worker answers 503 and the page tells the visitor to email instead. The `LIMITER` rate limit applies to both steps. Messages are limited to 2,000 characters. To switch the form off, set `LIVE` to `false` at the top of `contact.js`.

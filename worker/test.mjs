@@ -97,7 +97,7 @@ t("bad request 400", r.status === 400);
   t("rate limit returns 429", r.status === 429);
   r = await w.fetch(mk(ORI, base), { DRY_RUN: "1", LIMITER: { limit: async () => ({ success: true }) } });
   t("under the limit passes", r.status === 200);
-  r = await w.fetch(mk(ORI, { ...base, name: "x".repeat(6000) }), { DRY_RUN: "1" });
+  r = await w.fetch(mk(ORI, { ...base, name: "x".repeat(9000) }), { DRY_RUN: "1" });
   t("oversize body rejected", r.status === 413);
   seen.length = 0;
   await w.fetch(mk(ORI, { ...base, email: "bad" }), { DRY_RUN: "1", TURNSTILE_SECRET: "s" });
@@ -169,6 +169,56 @@ else {
   const rr = await w.fetch(mk(ORI, base), env); const jj = await rr.json();
   t("outbox: step 1 partial failure queues only the failed email and still answers ok", rr.status === 200 && jj.ok && jj.queued && count() === 1);
   t("outbox: DRY_RUN never touches the outbox", (await processOutbox({ ...env, DRY_RUN: "1" }, T0 + 99 * 3600_000)).sent === 0);
+}
+
+// "Drop me a message": code by email, message sent only after the code is entered
+{
+  const sent = [];
+  globalThis.fetch = async (u, o) => { if (u.includes("turnstile")) return new Response(JSON.stringify({ success: String(o.body).includes("goodtoken") }), { status: 200 }); sent.push(JSON.parse(o.body)); return new Response("{}", { status: 201 }); };
+  const msg = { name: "Sam", email: "sam@example.com", message: "Hello Freddie,\nI would like to talk.", consent_msg: true, hp: "", ts: "goodtoken-goodtoken" };
+  const LIVE = { BREVO_API_KEY: "b", FROM_EMAIL: "hello@leadwithfx.com", ALERT_EMAIL: "me@x.com", TURNSTILE_SECRET: "s" };
+  t("message validates", !!(await import("./index.js")).validateMessage(msg));
+  let r = await w.fetch(mk(ORI, { ...msg, stage: "msg_code", consent_msg: false }), LIVE);
+  t("message needs consent", r.status === 400);
+  r = await w.fetch(mk(ORI, { ...msg, stage: "msg_code", message: "x".repeat(2001) }), LIVE);
+  t("message over 2000 characters rejected", r.status === 400);
+  r = await w.fetch(mk(ORI, { ...msg, stage: "msg_code", hp: "bot" }), LIVE);
+  t("message honeypot rejected", r.status === 400);
+  r = await w.fetch(mk(ORI, { ...msg, stage: "msg_code" }), { BREVO_API_KEY: "b", FROM_EMAIL: "f@x.com" });
+  t("message off without the human check configured", r.status === 503);
+  r = await w.fetch(mk(ORI, { ...msg, stage: "msg_code", ts: "badtoken-badtoken" }), LIVE);
+  t("message code needs the human check", r.status === 403 && sent.length === 0);
+  r = await w.fetch(mk(ORI, { ...msg, stage: "msg_code" }), LIVE);
+  const j1 = await r.json();
+  const codeMail = sent[0];
+  const code = (codeMail.subject.match(/(\d{6})$/) || [])[1];
+  t("code emailed only to the visitor", r.status === 200 && sent.length === 1 && codeMail.to[0].email === "sam@example.com" && !!code && !!j1.tok);
+  t("code email does not contain the message", !codeMail.htmlContent.includes("Hello Freddie"));
+  r = await w.fetch(mk(ORI, { ...msg, stage: "msg_send", tok: j1.tok, code: "000000" === code ? "111111" : "000000" }), LIVE);
+  t("wrong code rejected and nothing sent", r.status === 403 && sent.length === 1);
+  r = await w.fetch(mk(ORI, { ...msg, stage: "msg_send", tok: j1.tok, code }), LIVE);
+  const j3 = await r.json();
+  t("right code sends owner message and confirmation", r.status === 200 && j3.ok && sent.length === 3);
+  const owner = sent[1], back = sent[2];
+  t("owner email goes to the owner with reply-to set to the visitor", owner.to[0].email === "me@x.com" && owner.replyTo.email === "sam@example.com" && owner.htmlContent.includes("Hello Freddie"));
+  t("visitor confirmation includes 72 hours", back.to[0].email === "sam@example.com" && back.htmlContent.includes("72 hours"));
+  r = await w.fetch(mk(ORI, { ...msg, stage: "msg_send", message: "A different message", tok: j1.tok, code }), LIVE);
+  t("code cannot be reused for a different message", r.status === 403);
+  r = await w.fetch(mk(ORI, { ...msg, email: "other@example.com", stage: "msg_send", tok: j1.tok, code }), LIVE);
+  t("code cannot be used for a different email", r.status === 403);
+  const old = Date.now;
+  Date.now = () => old() + 11 * 60 * 1000;
+  r = await w.fetch(mk(ORI, { ...msg, stage: "msg_send", tok: j1.tok, code }), LIVE);
+  Date.now = old;
+  t("code expires after 10 minutes", r.status === 403);
+  r = await w.fetch(mk(ORI, { ...msg, name: "Sam <b>", stage: "msg_code" }), LIVE);
+  t("html in name rejected", r.status === 400);
+  r = await w.fetch(mk(ORI, { ...msg, stage: "msg_code" }), { ...LIVE, DRY_RUN: "1" });
+  const jd = await r.json();
+  t("dry run returns the code and sends nothing", jd.dry === true && /^\d{6}$/.test(jd.code) && sent.length === 3);
+  globalThis.fetch = async () => new Response("no", { status: 500 });
+  r = await w.fetch(mk(ORI, { ...msg, stage: "msg_code", ts: "goodtoken-goodtoken" }), LIVE);
+  t("send failure on code returns 400 or 403 or 502", [400, 403, 502].includes(r.status));
 }
 console.log(fails ? fails + " FAILED" : "ALL PASSED");
 process.exit(fails ? 1 : 0);
