@@ -59,7 +59,7 @@
   <h2 id="r-title" tabindex="-1">Thanks for finishing it</h2>
   <p id="r-body" class="q-lead" hidden></p>
   <div id="r-stepbox" class="r-box" hidden><strong>Your next step</strong><p id="r-step"></p></div>
-  <div class="r-box r-fit"><strong id="r-fit-h"></strong><p id="r-fit-p"></p><p><a class="btn btn-gold" href="https://calendly.com/freddie-rx" target="_blank" rel="noopener" id="r-book3">Book a free intro call</a></p><p><a id="r-fit-a" class="r-fit-link" href="index.html#coaching">See how it works</a></p></div>
+  <div class="r-box r-fit"><strong id="r-fit-h"></strong><p id="r-fit-p"></p><p><a id="r-fit-a" class="r-fit-link" href="index.html#coaching">See how it works</a></p></div>
   <div class="r-box r-help"><strong id="r-help-h"></strong><p id="r-help-p"></p></div>
   <div class="r-box r-teaser" id="r-teaser" hidden><strong>Your strongest theme</strong><p id="r-strong"></p>
     <ul class="r-locked" aria-hidden="true">
@@ -188,7 +188,7 @@ function finish(){
   var w=HELP[(ans[2]||4)-1];
   $("r-help-h").textContent=w.h;$("r-help-p").textContent=w.p;
   var url="https://calendly.com/freddie-rx?a1="+encodeURIComponent("Clarity Check: "+r.title+". Profile: "+Q[0].o[(ans[0]||4)-1]+". Coaching before: "+Q[1].o[(ans[1]||1)-1]+". What helped before: "+Q[2].o[(ans[2]||4)-1]+".");
-  $("r-book2").href=url;$("r-book3").href=url;$("s-book").href=url;
+  $("r-book2").href=url;$("s-book").href=url;
   var full=!LIVE;
   $("r-offer").hidden=full;$("r-teaser").hidden=full;$("r-body").hidden=false;$("r-stepbox").hidden=!full;
   $("r-eyebrow").textContent=r.eyebrow;$("r-title").textContent=r.title;$("r-body").textContent=r.body;
@@ -234,7 +234,7 @@ $("rp-form").addEventListener("submit",function(e){
    .catch(function(err){clearTimeout(t);resetTs();btn.disabled=false;btn.textContent="Send my report";rpError(err&&err.slow?"That's a lot of requests from this connection. Please wait a minute and try again.":"Couldn't send your report. Check your email address and try again, or book a call instead.")});
 });
 $("s-assess").addEventListener("click",function(){ping("quiz-assess-click")});
-$("r-book2").addEventListener("click",function(){ping("quiz-book-click")});$("r-book3").addEventListener("click",function(){ping("quiz-book-click")});
+$("r-book2").addEventListener("click",function(){ping("quiz-book-click")});
 })();
 </script>
 <script src="nav.js" defer></script>
