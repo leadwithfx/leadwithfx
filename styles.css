@@ -428,3 +428,8 @@ h1,h2,h3,.brand-name,.statement-text,.quote-head,.quote-after,.quiz legend,.meth
   .glass h1{font-size:32px}
 }
 .rp-ts{margin:12px 0}
+
+.r-locked{list-style:none;margin:14px 0 0;padding:0}
+.r-locked li{display:flex;flex-wrap:wrap;gap:4px 14px;justify-content:space-between;padding:10px 0;border-top:1px solid #e6e1d4;font-size:16px;color:var(--navy)}
+.redact{font-style:normal;color:#c9c4b4;background:#efeadb;border-radius:4px;padding:0 6px;letter-spacing:1px;filter:blur(2px);user-select:none}
+.r-link{background:none;border:0;padding:0;font:inherit;color:var(--navy);text-decoration:underline;cursor:pointer}
