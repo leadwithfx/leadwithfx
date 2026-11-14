@@ -116,6 +116,7 @@ p{margin:0}
 .footer-inner{padding-top:36px;padding-bottom:36px;display:flex;flex-wrap:wrap;gap:20px;justify-content:space-between;align-items:center}
 .footer-brand{display:flex;align-items:center;gap:12px}
 .footer-links{display:flex;flex-wrap:wrap;gap:22px;font-weight:700}
+.footer-links a{display:inline-block;padding:4px 0;min-height:24px}
 .footer-note{width:100%;font-size:13px;color:#B7C2D6}
 
 /* Responsive */
