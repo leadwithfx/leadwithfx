@@ -1,0 +1,19 @@
+{
+  // Deployed automatically from GitHub (Cloudflare Workers Builds). Secrets are NOT stored here:
+  // BREVO_API_KEY and TURNSTILE_SECRET live in Cloudflare only (Settings > Variables and Secrets).
+  "name": "clarity-report",
+  "main": "index.js",
+  "compatibility_date": "2026-11-01",
+  "workers_dev": true,
+  "vars": {
+    "FROM_EMAIL": "info@leadwithfx.com",
+    "ALERT_EMAIL": "leadwithfx@gmail.com",
+    "BREVO_LIST_ID": "3",
+    // Test mode: builds reports but sends nothing. Delete this line (and push) to go live.
+    "DRY_RUN": "1"
+  },
+  "ratelimits": [
+    { "name": "LIMITER", "namespace_id": "1001", "simple": { "limit": 3, "period": 60 } }
+  ],
+  "observability": { "enabled": true }
+}
