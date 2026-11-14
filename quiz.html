@@ -72,7 +72,8 @@
   <div class="r-box r-offer" id="r-offer"><strong>Your full Clarity Report is ready</strong>
     <p>Book a free intro call and I'll share it with you there. We'll go through it together, talk about what you're looking for, and agree whether I can help.</p>
     <p><a class="btn btn-gold" href="https://calendly.com/freddie-rx" target="_blank" rel="noopener" id="r-book2">Book a free intro call</a></p>
-    <p class="r-small">Want me to prepare it first? <button id="r-get" class="r-link" type="button">Share your answers with me</button></p>
+    <p class="r-small">Not ready to book yet? Leave your email and I'll prepare your full report before we talk.</p>
+    <p><button id="r-get" class="btn btn-outline" type="button">Leave my email</button></p>
   </div>
   <div class="r-actions"><button id="q-again" class="btn btn-outline" type="button">Retake the check</button></div>
   <p class="q-fine">This is a reflection tool, not an assessment or a diagnosis.</p>
@@ -80,8 +81,8 @@
 
 <div id="quiz-report" class="q-panel" hidden>
   <p class="q-eyebrow">Your Clarity Report</p>
-  <h2 id="rp-title" tabindex="-1">Share your answers with me</h2>
-  <p class="q-lead">I'll prepare your full Clarity Report and bring it to our intro call. You won't receive the report by email.</p>
+  <h2 id="rp-title" tabindex="-1">Leave your email</h2>
+  <p class="q-lead">I'll prepare your full Clarity Report and we'll go through it together on an intro call. I'll email you a confirmation with a link to book.</p>
   <form id="rp-form" class="rp-form" novalidate>
     <label for="rp-name">First name</label>
     <input id="rp-name" type="text" autocomplete="given-name" maxlength="60">
@@ -93,7 +94,7 @@
     <p class="q-fine">I use your email to send this report. If you tick the second box, I'll also keep your details so I can follow up with you one to one. You can ask me to delete them at any time. See the <a href="privacy.html#clarity-report">privacy page</a>.</p>
     <div id="rp-ts" class="rp-ts"></div>
     <p id="rp-err" class="rp-err" role="alert" hidden></p>
-    <div class="q-nav"><button id="rp-back" class="btn btn-outline" type="button">Back</button><button id="rp-send" class="btn btn-gold" type="submit">Share my answers</button></div>
+    <div class="q-nav"><button id="rp-back" class="btn btn-outline" type="button">Back</button><button id="rp-send" class="btn btn-gold" type="submit">Leave my email</button></div>
   </form>
 </div>
 
@@ -202,7 +203,7 @@ function finish(){
 $("q-start").addEventListener("click",function(){i=0;ans=[];resetReport();show(run);render();ping("quiz-start")});
 $("q-again").addEventListener("click",function(){i=0;ans=[];resetReport();show(intro)});
 var EMAIL_RE=/^[^\s@<>"]+@[^\s@<>"]+\.[^\s@<>"]+$/;
-function resetReport(){try{resetTs()}catch(e){}["rp-name","rp-email","rp-hp"].forEach(function(k){$(k).value=""});$("rp-c1").checked=false;$("rp-c2").checked=false;$("rp-err").hidden=true;$("rp-send").disabled=false;$("rp-send").textContent="Share my answers"}
+function resetReport(){try{resetTs()}catch(e){}["rp-name","rp-email","rp-hp"].forEach(function(k){$(k).value=""});$("rp-c1").checked=false;$("rp-c2").checked=false;$("rp-err").hidden=true;$("rp-send").disabled=false;$("rp-send").textContent="Leave my email"}
 function rpError(msg,id){var e=$("rp-err");e.textContent=msg;e.hidden=false;if(id)$(id).focus()}
 var tsId=null,tsTok="";
 function loadTs(){
