@@ -1,6 +1,6 @@
 // Cloudflare Worker for the Clarity Report.
-// Receives answer numbers plus a first name and email, writes the report, emails it once,
-// and (only if the person opted in) adds them to the pipeline and alerts the owner.
+// Receives answer numbers plus a first name and email. Step 1 ("result") emails the full report to the owner and a confirmation to the visitor.
+// Step 2 ("request", only if the visitor ticks the box) alerts the owner and adds them to the pipeline.
 // Free-text never reaches the AI: only the answer numbers do.
 //
 // Secrets and variables (Cloudflare > Worker > Settings):
@@ -91,7 +91,8 @@ export function validateRequest(body) {
   const email = typeof body.email === "string" ? body.email.trim() : "";
   if (!name || name.length > 60 || /[\u0000-\u001f<>]/.test(name)) return null;
   if (email.length > 254 || !/^[^\s@<>"]+@[^\s@<>"]+\.[^\s@<>"]+$/.test(email)) return null;
-  return { nums, name, email, contact: body.consent_contact === true };
+  const stage = body.stage === "request" ? "request" : "result";
+  return { nums, name, email, stage, tok: typeof body.tok === "string" ? body.tok : "" };
 }
 
 export function analyse(nums) {
@@ -190,6 +191,24 @@ async function brevo(env, path, payload) {
 
 const MAX_BODY = 4096;
 
+const b64u = (buf) => btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+async function hmac(secret, msg) {
+  const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  return b64u(await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(msg)));
+}
+// A short-lived proof that this email already passed the human check, so the second step needs no new check.
+export async function makeToken(env, email, now = Date.now()) {
+  if (!env.TURNSTILE_SECRET) return "";
+  const exp = now + 60 * 60 * 1000;
+  return exp + "." + (await hmac(env.TURNSTILE_SECRET, "req|" + email.toLowerCase() + "|" + exp));
+}
+export async function tokenOk(env, email, tok, now = Date.now()) {
+  if (!env.TURNSTILE_SECRET) return true; // not switched on yet
+  const [exp, sig] = String(tok || "").split(".");
+  if (!exp || !sig || !(Number(exp) > now)) return false;
+  return sig === (await hmac(env.TURNSTILE_SECRET, "req|" + email.toLowerCase() + "|" + exp));
+}
+
 export async function humanOk(env, token, ip) {
   if (!env.TURNSTILE_SECRET) return true; // not switched on yet
   if (typeof token !== "string" || token.length < 10 || token.length > 2048) return false;
@@ -223,39 +242,46 @@ export default {
     } catch { return json({ error: "json" }, 400, origin); }
     const req = validateRequest(body);
     if (!req) return json({ error: "request" }, 400, origin);
-    if (!(await humanOk(env, body.ts, ip))) return json({ error: "human" }, 403, origin);
+    if (req.stage === "request") {
+      if (!(await tokenOk(env, req.email, req.tok))) return json({ error: "human" }, 403, origin);
+    } else if (!(await humanOk(env, body.ts, ip))) return json({ error: "human" }, 403, origin);
 
     const a = analyse(req.nums);
+    const today = new Date().toISOString().slice(0, 10);
+    const wants = req.stage === "request";
+    const attrs = { FIRSTNAME: req.name, BAND: a.band.title, PROFILE: PROFILE[req.nums[0] - 1], COACHED_BEFORE: COACHED[req.nums[1] - 1], HELPED_BEFORE: HELPED[req.nums[2] - 1], LOWEST_THEME: a.low.n, CONSENT_DATE: today, STAGE: "Requested full report and call" };
+    const rows = [["Name", req.name], ["Email", req.email], ["Result", a.band.title], ["Profile", attrs.PROFILE], ["Coaching before", attrs.COACHED_BEFORE], ["What helped before", attrs.HELPED_BEFORE], ["Lowest theme", a.low.n], ["Status", wants ? "Ticked: wants the full report and a call, and agreed Freddie can contact them (" + today + ")" : "Result only: has not asked for a call yet"]];
+    const lead = '<table cellpadding="6" style="font-family:Arial,sans-serif;font-size:14px;margin-bottom:12px">' + rows.map((r) => "<tr><td><b>" + r[0] + "</b></td><td>" + esc(r[1]) + "</td></tr>").join("") + "</table>";
+    const rowsText = rows.map((r) => r[0] + ": " + r[1]).join("\n");
+    const sender = { name: "Freddie at Lead with FX", email: env.FROM_EMAIL };
+    const to = [{ email: env.ALERT_EMAIL || "leadwithfx@gmail.com" }];
+    const dry = env.DRY_RUN === "1" || !env.BREVO_API_KEY;
+
+    if (wants) {
+      const subject = "Wants full report and call: " + req.name + ", " + a.band.title;
+      if (dry) return json({ ok: true, dry: true, subject, stage: "request" }, 200, origin);
+      const mine = await brevo(env, "smtp/email", { sender, replyTo: { email: req.email, name: req.name }, to, subject,
+        htmlContent: lead + '<p style="font-family:Arial,sans-serif;font-size:14px">The full report was in the earlier "New lead" email for this person.</p>', textContent: rowsText + "\n\nThe full report was in the earlier New lead email for this person." });
+      if (!mine.ok) return json({ error: "send" }, 502, origin);
+      try {
+        await brevo(env, "contacts", { email: req.email, attributes: attrs, listIds: env.BREVO_LIST_ID ? [Number(env.BREVO_LIST_ID)] : [], updateEnabled: true });
+      } catch { /* the request already reached Freddie */ }
+      return json({ ok: true }, 200, origin);
+    }
+
     const ai = await aiReflection(env, req.nums);
     const report = buildReport(req.name, req.nums, a, ai || fallbackReflection(a), !!ai);
     const confirm = buildConfirmation(req.name);
-    const today = new Date().toISOString().slice(0, 10);
-    const attrs = { FIRSTNAME: req.name, BAND: a.band.title, PROFILE: PROFILE[req.nums[0] - 1], COACHED_BEFORE: COACHED[req.nums[1] - 1], HELPED_BEFORE: HELPED[req.nums[2] - 1], LOWEST_THEME: a.low.n, CONSENT_DATE: today, STAGE: "Answers received" };
-    const rows = [["Name", req.name], ["Email", req.email], ["Result", a.band.title], ["Profile", attrs.PROFILE], ["Coaching before", attrs.COACHED_BEFORE], ["What helped before", attrs.HELPED_BEFORE], ["Lowest theme", a.low.n], ["Contact consent", req.contact ? "Ticked: Freddie can contact me personally (" + today + ")" : "Not ticked: use the details for this report and booking only"]];
-    const lead = '<table cellpadding="6" style="font-family:Arial,sans-serif;font-size:14px;margin-bottom:12px">' + rows.map((r) => "<tr><td><b>" + r[0] + "</b></td><td>" + esc(r[1]) + "</td></tr>").join("") + "</table>";
-    const toFreddie = { subject: "New lead: " + req.name + ", " + a.band.title, html: lead + report.html, text: rows.map((r) => r[0] + ": " + r[1]).join("\n") + "\n\n" + report.text };
+    const tok = await makeToken(env, req.email);
+    if (dry) return json({ ok: true, dry: true, subject: report.subject, html: report.html, text: report.text, confirmation: confirm.html, tok }, 200, origin);
 
-    if (env.DRY_RUN === "1" || !env.BREVO_API_KEY) {
-      return json({ ok: true, dry: true, subject: report.subject, html: report.html, text: report.text, confirmation: confirm.html, lead: req.contact }, 200, origin);
-    }
-
-    const sender = { name: "Freddie at Lead with FX", email: env.FROM_EMAIL };
-    const mine = await brevo(env, "smtp/email", {
-      sender, replyTo: { email: req.email, name: req.name },
-      to: [{ email: env.ALERT_EMAIL || "leadwithfx@gmail.com" }],
-      subject: toFreddie.subject, htmlContent: toFreddie.html, textContent: toFreddie.text,
-    });
+    const mine = await brevo(env, "smtp/email", { sender, replyTo: { email: req.email, name: req.name }, to,
+      subject: "New lead: " + req.name + ", " + a.band.title, htmlContent: lead + report.html, textContent: rowsText + "\n\n" + report.text });
     if (!mine.ok) return json({ error: "send" }, 502, origin);
     try {
-      await brevo(env, "smtp/email", {
-        sender, replyTo: { email: "leadwithfx@gmail.com", name: "Freddie Xavier" },
-        to: [{ email: req.email, name: req.name }],
-        subject: confirm.subject, htmlContent: confirm.html, textContent: confirm.text,
-      });
-      if (req.contact) {
-        await brevo(env, "contacts", { email: req.email, attributes: attrs, listIds: env.BREVO_LIST_ID ? [Number(env.BREVO_LIST_ID)] : [], updateEnabled: true });
-      }
-    } catch { /* the lead already reached Freddie; follow-up errors must not break the visitor's flow */ }
-    return json({ ok: true }, 200, origin);
+      await brevo(env, "smtp/email", { sender, replyTo: { email: "leadwithfx@gmail.com", name: "Freddie Xavier" },
+        to: [{ email: req.email, name: req.name }], subject: confirm.subject, htmlContent: confirm.html, textContent: confirm.text });
+    } catch { /* the lead already reached Freddie; the confirmation must not break the visitor's flow */ }
+    return json({ ok: true, tok }, 200, origin);
   },
 };

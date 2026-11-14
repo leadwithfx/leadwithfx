@@ -1,6 +1,6 @@
 # Clarity Report: setup
 
-The site is static, so the full report is built and emailed to Freddie (not the visitor) by a small Cloudflare Worker (`worker/index.js`).
+The site is static, so the report is built and emailed to Freddie (not the visitor) by a small Cloudflare Worker, in two steps (`worker/index.js`).
 It accepts only answer numbers, a first name, an email and two consent flags, and only from leadwithfx.com.
 Until you set `REPORT_ENDPOINT` in `quiz.html`, the form runs in **test mode** and sends nothing.
 
@@ -8,7 +8,7 @@ Until you set `REPORT_ENDPOINT` in `quiz.html`, the form runs in **test mode** a
 1. Validates the request (consent to the report is required; a hidden honeypot field blocks simple bots).
 2. Scores the answers into the overall result and five themes (Clarity, Visibility, Accountability, Momentum, Influence) and picks the lowest theme for the 90-day plan.
 3. Asks Anthropic for a short reflection from the answer numbers only (never the name or email). If that fails, a plain built-in reflection is used instead.
-4. Emails the full report to `ALERT_EMAIL` and a short confirmation with the booking link to the visitor, through Brevo.
+4. Step 1 (`stage: result`): emails the full report to `ALERT_EMAIL` and a confirmation with the booking link to the visitor, and returns a one-hour token. Step 2 (`stage: request`, only if the visitor ticks the box): checks the token, emails an alert, and saves the contact to the Brevo list.
 5. Only if the visitor ticked "Freddie can contact me personally": adds them to your Brevo list with their result, profile, coaching history, lowest theme, consent date and stage, and emails you a lead alert. If they did not tick it, nothing is kept.
 
 ## One-time setup (about 45 minutes)
@@ -28,7 +28,7 @@ Until you set `REPORT_ENDPOINT` in `quiz.html`, the form runs in **test mode** a
 6. **Switch it on.** Put the Worker URL in `quiz.html` as `REPORT_ENDPOINT`, commit, push. Send yourself a test report first.
 
 ## Checks
-- `node worker/test.mjs` runs 34 local tests (validation, scoring, escaping, consent paths, failure handling). They use a mocked network, so they do not prove the live Brevo or Anthropic calls: do the test report in step 6.
+- `node worker/test.mjs` runs 40 local tests (validation, scoring, escaping, consent paths, failure handling). They use a mocked network, so they do not prove the live Brevo or Anthropic calls: do the test report in step 6.
 - If you change the quiz questions or options, update `QUESTIONS` in `worker/index.js` to match, and the `THEMES` question numbers if the order changes.
 - Follow-ups to pipeline contacts should be one to one, from you, with a line on how to stop hearing from you. Check final wording with your adviser.
 
