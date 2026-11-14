@@ -13,7 +13,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,WONK@9..144,500..600,0&family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=20261118">
+<link rel="stylesheet" href="styles.css?v=20261119">
 <script data-goatcounter="https://leadwithfx.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 <meta property="og:title" content="Clarity Check | Lead with FX"><meta property="og:image" content="https://leadwithfx.com/og.png">
 </head><body>
@@ -42,6 +42,7 @@
   <div class="rule"></div>
   <h1>Where are you on your path?</h1>
   <p class="q-lead" id="q-lead">Five quick questions, plus a few about you. Two minutes. You'll see which kind of coaching fits you<span id="q-rep">, with a first look at your Clarity Report</span>. Your answers stay in your browser<span id="q-rep2"> unless you ask for that report</span>.</p>
+  <button id="q-resume" class="btn btn-gold" type="button" hidden>Resume at question 1</button>
   <button id="q-start" class="btn btn-gold" type="button">Start the Clarity Check</button>
 </div>
 
@@ -58,6 +59,11 @@
   <p class="q-eyebrow" id="r-eyebrow">Your Clarity Check</p>
   <h2 id="r-title" tabindex="-1">Thanks for finishing it</h2>
   <p id="r-body" class="q-lead" hidden></p>
+  <figure id="r-radar" class="radar" hidden>
+    <svg id="r-radar-svg" viewBox="0 0 400 300" role="img" aria-labelledby="r-radar-cap" focusable="false"></svg>
+    <figcaption id="r-radar-cap" class="sr-only"></figcaption>
+    <ul id="r-radar-list" class="radar-list"></ul>
+  </figure>
   <div id="r-stepbox" class="r-box" hidden><strong>Your next step</strong><p id="r-step"></p></div>
   <div class="r-box r-fit"><strong id="r-fit-h"></strong><p id="r-fit-p"></p><p><a id="r-fit-a" class="r-fit-link" href="index.html#coaching">See how it works</a></p></div>
   <div class="r-box r-help"><strong id="r-help-h"></strong><p id="r-help-p"></p></div>
@@ -135,6 +141,30 @@ var R=[
 var $=function(i){return document.getElementById(i)};
 var intro=$("quiz-intro"),run=$("quiz-run"),res=$("quiz-result"),rep=$("quiz-report"),sent=$("quiz-sent"),form=$("q-form"),opts=$("q-options"),nextB=$("q-next"),back=$("q-back");
 var i=0,ans=[];
+var KEY="lwfx-clarity-progress",THEMES=["Clarity","Visibility","Accountability","Momentum","Influence"],LV=["Early","Building","Strong"];
+function band(v){var f=(v-1)/3;return f<.34?0:f<.67?1:2}
+function saveP(){try{sessionStorage.setItem(KEY,JSON.stringify({i:i,a:ans}))}catch(e){}}
+function clearP(){try{sessionStorage.removeItem(KEY)}catch(e){}}
+function loadP(){try{var d=JSON.parse(sessionStorage.getItem(KEY)||"null");if(!d||!Array.isArray(d.a)||typeof d.i!=="number")return null;var a=[];for(var k=0;k<Q.length;k++){var v=d.a[k];if(v==null){if(k<d.a.length)return null;continue}if(!(v>=1&&v<=Q[k].o.length&&v%1===0))return null;a[k]=v}var n=Math.min(Math.max(0,d.i|0),Q.length-1);if(n>0&&!a[n-1])return null;return{i:n,a:a}}catch(e){return null}}
+function drawRadar(){
+  var fig=$("r-radar"),svg=$("r-radar-svg"),cx=200,cy=150,R=100,N=5,NS="http://www.w3.org/2000/svg";
+  function pt(k,r){var t=-Math.PI/2+k*2*Math.PI/N;return[cx+r*Math.cos(t),cy+r*Math.sin(t)]}
+  function el(n,at){var e=document.createElementNS(NS,n);for(var x in at)e.setAttribute(x,at[x]);return e}
+  svg.innerHTML="";
+  for(var l=1;l<=4;l++){var pts=[];for(var k=0;k<N;k++)pts.push(pt(k,R*l/4).join(","));svg.appendChild(el("polygon",{points:pts.join(" "),class:"rd-ring"}))}
+  for(var k=0;k<N;k++){var e=pt(k,R);svg.appendChild(el("line",{x1:cx,y1:cy,x2:e[0],y2:e[1],class:"rd-axis"}))}
+  var vals=[],dp=[];
+  for(var k=0;k<N;k++){var v=ans[3+k]||1;vals.push(v);dp.push(pt(k,R*v/4).join(","))}
+  var g=el("g",{class:"rd-shape"});
+  g.appendChild(el("polygon",{points:dp.join(" "),class:"rd-area"}));
+  vals.forEach(function(v,k){var q=pt(k,R*v/4);g.appendChild(el("circle",{cx:q[0],cy:q[1],r:4,class:"rd-dot"}))});
+  svg.appendChild(g);
+  THEMES.forEach(function(t,k){var q=pt(k,R+22),a=el("text",{x:q[0],y:q[1]+4,class:"rd-label","text-anchor":Math.abs(q[0]-cx)<6?"middle":q[0]>cx?"start":"end"});a.textContent=t;svg.appendChild(a)});
+  var list=$("r-radar-list");list.innerHTML="";var txt=[];
+  vals.forEach(function(v,k){var li=document.createElement("li"),b=LV[band(v)];li.innerHTML="<span></span><strong></strong>";li.firstChild.textContent=THEMES[k];li.lastChild.textContent=b;list.appendChild(li);txt.push(THEMES[k]+": "+b)});
+  $("r-radar-cap").textContent="Radar chart of your five themes. "+txt.join(". ")+".";
+  fig.hidden=false;fig.classList.remove("on");void fig.offsetWidth;fig.classList.add("on");
+}
 if(!LIVE){var a1=document.getElementById("q-rep"),a2=document.getElementById("q-rep2");if(a1)a1.remove();if(a2)a2.remove()}
 function show(el){[intro,run,res,rep,sent].forEach(function(x){x.hidden=x!==el})}
 function ping(name){try{if(window.goatcounter&&window.goatcounter.count)window.goatcounter.count({path:name,title:name,event:true})}catch(e){}}
@@ -157,12 +187,12 @@ function render(){
   back.style.visibility=i===0?"hidden":"visible";
   $("q-text").focus({preventScroll:true});
 }
-opts.addEventListener("change",function(e){ans[i]=parseInt(e.target.value,10);nextB.disabled=false});
+opts.addEventListener("change",function(e){ans[i]=parseInt(e.target.value,10);nextB.disabled=false;saveP()});
 form.addEventListener("submit",function(e){
   e.preventDefault();if(!ans[i])return;
-  if(i<Q.length-1){i++;render()}else if(LIVE){loadTs();show(rep);$("rp-title").focus();window.scrollTo({top:0,behavior:"smooth"});ping("quiz-gate")}else{finish()}
+  if(i<Q.length-1){i++;saveP();render()}else if(LIVE){loadTs();show(rep);$("rp-title").focus();window.scrollTo({top:0,behavior:"smooth"});ping("quiz-gate")}else{finish()}
 });
-back.addEventListener("click",function(){if(i>0){i--;render()}});
+back.addEventListener("click",function(){if(i>0){i--;saveP();render()}});
 var FIT=[
 {h:"Leadership Coaching may be the right fit",p:"You told me you're a tech leader or manager. Based on that and your answers, Leadership Coaching may be the right fit for you.",l:"Leadership"},
 {h:"Career Coaching may be the right fit",p:"You told me you're thinking about a career change. Based on that and your answers, Career Coaching may be the right fit for you.",l:"Career"},
@@ -194,11 +224,21 @@ function finish(){
   $("r-offer").hidden=full;$("r-body").hidden=false;$("r-stepbox").hidden=!full;
   if(full){$("r-eyebrow").textContent=r.eyebrow;$("r-title").textContent=r.title;$("r-body").textContent=r.body;$("r-step").textContent=r.step}
   else{$("r-eyebrow").textContent="Your Clarity Check";$("r-title").textContent="Your report is on its way";$("r-body").textContent="I've emailed it to "+(ctx?ctx.email:"you")+". It should arrive within a few minutes. If it isn't there, check spam or promotions, or retake the check with the right address."}
+  drawRadar();clearP();
   show(res);$("r-title").focus();window.scrollTo({top:0,behavior:"smooth"});
   ping("quiz-complete-"+r.title.toLowerCase().replace(/\s+/g,"-"));
 }
-$("q-start").addEventListener("click",function(){i=0;ans=[];resetReport();show(run);render();ping("quiz-start")});
-$("q-again").addEventListener("click",function(){i=0;ans=[];resetReport();show(intro)});
+$("q-start").addEventListener("click",function(){i=0;ans=[];clearP();resetReport();show(run);render();ping("quiz-start")});
+var saved=loadP();
+if(saved&&(saved.i>0||saved.a[0])){var rb=$("q-resume");rb.textContent="Resume at question "+(saved.i+1)+" of "+Q.length;rb.hidden=false;$("q-start").textContent="Start over";$("q-start").className="btn btn-outline";
+  rb.addEventListener("click",function(){i=saved.i;ans=saved.a;resetReport();show(run);render();ping("quiz-resume")})}
+document.addEventListener("keydown",function(e){
+  if(run.hidden||e.ctrlKey||e.metaKey||e.altKey)return;
+  var t=e.target&&e.target.tagName;if(t==="INPUT"&&e.target.type!=="radio"||t==="TEXTAREA"||t==="SELECT")return;
+  var n=parseInt(e.key,10);if(!(n>=1&&n<=Q[i].o.length))return;
+  var inp=opts.querySelectorAll("input")[n-1];if(inp){inp.checked=true;inp.focus();ans[i]=n;nextB.disabled=false;saveP()}
+});
+$("q-again").addEventListener("click",function(){i=0;ans=[];clearP();resetReport();$("r-radar").hidden=true;show(intro)});
 var EMAIL_RE=/^[^\s@<>"]+@[^\s@<>"]+\.[^\s@<>"]+$/;
 function resetReport(){try{resetTs()}catch(e){}["rp-name","rp-email","rp-hp"].forEach(function(k){$(k).value=""});$("rp-c1").checked=false;ctx=null;if($("r-c3")){$("r-c3").checked=false;$("r-go").disabled=true;$("r-note").hidden=true}$("rp-err").hidden=true;$("rp-send").disabled=false;$("rp-send").textContent="Email me my report"}
 function rpError(msg,id){var e=$("rp-err");e.textContent=msg;e.hidden=false;if(id)$(id).focus()}
