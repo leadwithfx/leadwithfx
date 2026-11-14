@@ -538,3 +538,4 @@ h1,h2,h3,.brand-name,.statement-text,.quote-head,.quote-after,.quiz legend,.meth
 }
 .step-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:6px}.step-actions .btn-outline{align-self:auto;padding:11px 20px;font-size:13px}
 .step-actions .btn{padding:13px 22px;font-size:13px;border:2px solid var(--gold)}.step-actions .btn-outline{border-color:var(--ink)}
+.footer-social{display:inline-flex;align-items:center}.footer-social svg{display:block}
