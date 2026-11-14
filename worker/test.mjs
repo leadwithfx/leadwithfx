@@ -1,4 +1,4 @@
-import w, { validate, validateRequest, analyse, buildReport, buildConfirmation, fallbackReflection, makeToken, tokenOk } from "./index.js";
+import w, { validate, validateRequest, analyse, buildReport, reflect, makeToken, tokenOk } from "./index.js";
 import { writeFileSync } from "node:fs";
 let fails = 0;
 const t = (name, ok) => { console.log((ok ? "PASS " : "FAIL ") + name); if (!ok) fails++; };
@@ -23,33 +23,40 @@ t("band computed", a.band.title === "Take the step");
 t("five themes", a.themes.length === 5);
 const hi = analyse([1, 1, 1, 4,4,4,4,4]), lo = analyse([1, 1, 1, 1,1,1,1,1]);
 t("high band", hi.band.title === "Keep moving" && lo.band.title === "Light the path");
-const rep = buildReport("Sam <script>", ans, a, fallbackReflection(a), false);
+const rep = buildReport("Sam <script>", ans, a);
 t("name escaped in email", !rep.html.includes("<script>") && rep.html.includes("&lt;script&gt;"));
 t("no VIA name in email", !/VIA/.test(rep.html) && !/VIA/.test(rep.text));
 t("independent-organisation line", rep.html.includes("independent organisation"));
-t("AI label only when AI used", !rep.html.includes("Written by AI") && buildReport("Sam", ans, a, "x y z", true).html.includes("Written by AI"));
-writeFileSync("/tmp/sample-report.html", buildReport("Sam", ans, a, "Your answers show real momentum, and a gap in who knows the value you bring.\n\nWhat would change if the people who matter saw your results more often?", true).html);
+t("no AI label or AI wording", !/Written by AI|artificial/i.test(rep.html + rep.text));
+writeFileSync("/tmp/sample-report.html", buildReport("Sam", ans, a).html);
 
+t("visitor report has booking button and owner copy does not", rep.html.includes("calendly.com") && !buildReport("Sam", ans, a, true).html.includes("calendly.com"));
 {
-  const c = buildConfirmation("Sam <script>");
-  t("confirmation escapes name", !c.html.includes("<script>") && c.html.includes("&lt;script&gt;"));
-  t("confirmation holds back the report", !/Light the path|Take the step|Keep moving|YOUR FIVE THEMES/i.test(c.html + c.text) && /intro call/.test(c.html));
+  // every combination of the five scored answers gives a reflection; same answers, same words
+  let ok = true, seenText = new Set();
+  for (let p = 1; p <= 4; p++) for (let q1 = 1; q1 <= 4; q1++) for (let q2 = 1; q2 <= 4; q2++) for (let q3 = 1; q3 <= 4; q3++) for (let q4 = 1; q4 <= 4; q4++) {
+    const n = [1, 1, 1, p, q1, q2, q3, q4], an = analyse(n), r1 = reflect(an, n);
+    if (r1 !== reflect(analyse(n), n) || !/A question to sit with: .+\?$/.test(r1) || /undefined|NaN/.test(r1)) ok = false;
+    seenText.add(r1);
+  }
+  t("reflection covers all 1024 combinations cleanly", ok && seenText.size > 50);
+  t("reflection tailored to profile", reflect(analyse([1, 1, 1, 2, 3, 3, 3, 3]), [1, 1, 1, 2, 3, 3, 3, 3]).includes("tech leader") && reflect(analyse([2, 1, 1, 2, 3, 3, 3, 3]), [2, 1, 1, 2, 3, 3, 3, 3]).includes("changing careers"));
+  t("even answers handled", /fairly even/.test(reflect(analyse([1, 1, 1, 2, 2, 2, 2, 2]), [1, 1, 1, 2, 2, 2, 2, 2])));
 }
 const calls = [];
 globalThis.fetch = async (u, o) => {
   calls.push(u);
-  if (u.includes("anthropic")) return new Response(JSON.stringify({ content: [{ text: "Test reflection that is long enough to pass the length check." }] }), { status: 200 });
   return new Response("{}", { status: 201 });
 };
-let r = await w.fetch(mk(ORI, base), { DRY_RUN: "1", ANTHROPIC_API_KEY: "k" });
+let r = await w.fetch(mk(ORI, base), { DRY_RUN: "1" });
 let j = await r.json();
 t("dry run returns report, sends nothing", r.status === 200 && j.dry && j.html && !calls.some((c) => c.includes("brevo")));
 calls.length = 0;
-r = await w.fetch(mk(ORI, base), { BREVO_API_KEY: "b", FROM_EMAIL: "hello@leadwithfx.com", ALERT_EMAIL: "me@x.com", BREVO_LIST_ID: "3", ANTHROPIC_API_KEY: "k" });
-t("step 1: lead report + confirmation, nothing stored", r.status === 200 && calls.filter((c) => c.includes("brevo")).length === 2 && !calls.some((c) => c.includes("contacts")));
+r = await w.fetch(mk(ORI, base), { BREVO_API_KEY: "b", FROM_EMAIL: "hello@leadwithfx.com", ALERT_EMAIL: "me@x.com", BREVO_LIST_ID: "3" });
+t("step 1: visitor report + owner copy, nothing stored", r.status === 200 && calls.filter((c) => c.includes("brevo")).length === 2 && !calls.some((c) => c.includes("contacts")));
 calls.length = 0;
 r = await w.fetch(mk(ORI, { ...base, stage: "request" }), { BREVO_API_KEY: "b", FROM_EMAIL: "hello@leadwithfx.com", ALERT_EMAIL: "me@x.com", BREVO_LIST_ID: "3" });
-t("step 2: alert + contact saved, no AI call", r.status === 200 && calls.filter((c) => c.includes("brevo")).length === 2 && calls.some((c) => c.includes("contacts")) && !calls.some((c) => c.includes("anthropic")));
+t("step 2: alert + contact saved", r.status === 200 && calls.filter((c) => c.includes("brevo")).length === 2 && calls.some((c) => c.includes("contacts")));
 // step 2 proof token
 const TS = { TURNSTILE_SECRET: "s", BREVO_API_KEY: "b", FROM_EMAIL: "f@x.com" };
 const tk = await makeToken(TS, "sam@example.com");
@@ -91,7 +98,7 @@ t("bad request 400", r.status === 400);
   t("oversize body rejected", r.status === 413);
   seen.length = 0;
   await w.fetch(mk(ORI, { ...base, email: "bad" }), { DRY_RUN: "1", TURNSTILE_SECRET: "s" });
-  t("bad requests never reach the AI", !seen.some((u) => u.includes("anthropic")));
+  t("no AI service is ever called", !seen.some((u) => u.includes("anthropic")));
 }
 console.log(fails ? fails + " FAILED" : "ALL PASSED");
 process.exit(fails ? 1 : 0);
