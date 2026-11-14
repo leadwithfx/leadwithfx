@@ -27,6 +27,7 @@ for (const path of pages) {
   const page = await context.newPage();
   // Third-party scripts (analytics, Turnstile) are not ours to audit and are not needed for the check.
   await page.route(/^https?:\/\/(?!127\.0\.0\.1)/, (r) => r.abort());
+  await page.emulateMedia({ reducedMotion: "reduce" }); // skip fade-in animations so colours are measured at rest
   await page.goto(base + path, { waitUntil: "load" });
   const { violations } = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze();
   const serious = violations.filter((v) => v.impact === "serious" || v.impact === "critical");
