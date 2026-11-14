@@ -3,7 +3,7 @@
     "collect": {
       "staticDistDir": ".",
       "url": ["/index.html", "/quiz.html"],
-      "numberOfRuns": 1,
+      "numberOfRuns": 3,
       "settings": { "onlyCategories": ["performance", "accessibility", "best-practices", "seo"], "chromeFlags": "--no-sandbox" }
     },
     "assert": {

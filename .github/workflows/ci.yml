@@ -47,4 +47,9 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: 22 }
       - run: npm install --no-save --no-audit --no-fund @lhci/cli@0.14.x
-      - run: npx lhci autorun --config=lighthouserc.json
+      - name: Run Lighthouse
+        run: |
+          npx lhci autorun --config=lighthouserc.json 2>&1 | tee lhci.log
+          status=${PIPESTATUS[0]}
+          grep -E "✘|expected|failed" lhci.log | head -8 | while read -r l; do echo "::warning title=lighthouse::$l"; done
+          exit $status
