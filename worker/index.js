@@ -11,6 +11,7 @@
 //   INSIGHTS_LIST_ID (number, the Insights newsletter list; signup is off until set)
 //   DB (D1 binding, optional): retry outbox for failed Brevo calls; see schema.sql and the cron trigger in wrangler.jsonc
 //   Optional: DRY_RUN=1 (builds the report but sends nothing)
+//   "Drop me a message" (stages msg_code and msg_send) needs BREVO_API_KEY, FROM_EMAIL and TURNSTILE_SECRET. It emails a 6-digit code to the visitor's address and sends the message only once the code is entered.
 //   Abuse protection (each is optional and switches on when set):
 //     TURNSTILE_SECRET (secret)  Cloudflare Turnstile secret key: requires a human check token from the quiz page
 //     LIMITER (rate limit binding)  per-visitor limit, e.g. 3 requests per 60 seconds; see README
@@ -224,7 +225,7 @@ export async function processOutbox(env, now = Date.now(), limit = 20) {
   return out;
 }
 
-const MAX_BODY = 4096;
+const MAX_BODY = 8192;
 
 const b64u = (buf) => btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 async function hmac(secret, msg) {
@@ -270,6 +271,61 @@ export async function subscribe(env, body, ip, origin) {
   return json({ ok: true }, 200, origin);
 }
 
+// "Drop me a message": the visitor writes a message, we email a 6-digit code to their address, and the message is sent to the owner only after they enter it.
+// Nothing is stored: the code is bound to the email, name and message by a signed token that the page holds and returns.
+const MSG_MAX = 2000, CODE_TTL_MS = 10 * 60 * 1000;
+export function validateMessage(body) {
+  if (!body || body.hp || body.consent_msg !== true) return null;
+  const name = typeof body.name === "string" ? body.name.trim() : "";
+  const email = typeof body.email === "string" ? body.email.trim() : "";
+  const message = typeof body.message === "string" ? body.message.replace(/\r\n?/g, "\n").trim() : "";
+  if (!name || name.length > 60 || /[\u0000-\u001f<>]/.test(name)) return null;
+  if (email.length > 254 || !/^[^\s@<>"]+@[^\s@<>"]+\.[^\s@<>"]+$/.test(email)) return null;
+  if (!message || message.length > MSG_MAX || /[\u0000-\u0008\u000b\u000c\u000e-\u001f]/.test(message)) return null;
+  return { name, email, message };
+}
+const codeSig = (env, m, code, exp) => hmac(env.TURNSTILE_SECRET, ["msg", m.email.toLowerCase(), code, exp, m.name, m.message].join("|"));
+function newCode() { const n = new Uint32Array(1); crypto.getRandomValues(n); return String(n[0] % 1000000).padStart(6, "0"); }
+const para = (s) => esc(s).split(/\n/).join("<br>");
+const wrap = (inner) => '<div style="background:#FAF8F3;padding:24px 12px;font-family:Arial,Helvetica,sans-serif"><div style="max-width:560px;margin:0 auto;background:#ffffff;border-radius:12px;padding:28px 26px"><div style="font-size:12px;letter-spacing:.12em;color:#C9A227;font-weight:bold">LEAD WITH FX</div>' + inner + "</div></div>";
+
+export async function contact(env, body, ip, origin, now = Date.now()) {
+  const m = validateMessage(body);
+  if (!m) return json({ error: "request" }, 400, origin);
+  if (!env.TURNSTILE_SECRET || !env.BREVO_API_KEY || !env.FROM_EMAIL) return json({ error: "off" }, 503, origin);
+  const dry = env.DRY_RUN === "1";
+  const sender = { name: "Freddie at Lead with FX", email: env.FROM_EMAIL };
+  const to = [{ email: env.ALERT_EMAIL || "leadwithfx@gmail.com" }];
+
+  if (body.stage === "msg_code") {
+    if (!(await humanOk(env, body.ts, ip))) return json({ error: "human" }, 403, origin);
+    const code = newCode(), exp = now + CODE_TTL_MS;
+    const tok = exp + "." + (await codeSig(env, m, code, exp));
+    if (dry) return json({ ok: true, dry: true, code, tok }, 200, origin);
+    const html = wrap('<h1 style="font-size:22px;color:#12294D;margin:8px 0 10px">Your code: ' + code + '</h1><p style="margin:0;font-size:15px;line-height:1.6;color:#4a5568">Hi ' + esc(m.name) + ", enter this code on leadwithfx.com to confirm your email address and send your message. It works for 10 minutes.</p>" +
+      '<p style="margin:18px 0 0;font-size:12px;line-height:1.5;color:#6b7280">If you did not ask for this, ignore this email and nothing will be sent.</p>');
+    const text = "Your code: " + code + "\n\nEnter it on leadwithfx.com to confirm your email address and send your message. It works for 10 minutes.\nIf you did not ask for this, ignore this email and nothing will be sent.";
+    const r = await deliver(env, "smtp/email", { sender, replyTo: { email: "leadwithfx@gmail.com", name: "Freddie Xavier" }, to: [{ email: m.email, name: m.name }], subject: "Your code to send a message: " + code, htmlContent: html, textContent: text });
+    if (r === "failed") return json({ error: "send" }, 502, origin);
+    return json({ ok: true, tok }, 200, origin);
+  }
+
+  const code = typeof body.code === "string" ? body.code.trim() : "";
+  const [exp, sig] = String(body.tok || "").split(".");
+  if (!/^\d{6}$/.test(code) || !exp || !sig || !(Number(exp) > now)) return json({ error: "code" }, 403, origin);
+  if (sig !== (await codeSig(env, m, code, exp))) return json({ error: "code" }, 403, origin);
+  const subject = "Message from " + m.name + " via leadwithfx.com";
+  if (dry) return json({ ok: true, dry: true, subject }, 200, origin);
+  const mine = await deliver(env, "smtp/email", { sender, replyTo: { email: m.email, name: m.name }, to, subject,
+    htmlContent: wrap('<h1 style="font-size:20px;color:#12294D;margin:8px 0 10px">' + esc(m.name) + " (" + esc(m.email) + ')</h1><p style="margin:0 0 12px;font-size:12px;color:#6b7280">Email address confirmed with a code. Reply to this email to answer.</p><p style="margin:0;font-size:15px;line-height:1.6;color:#4a5568">' + para(m.message) + "</p>"),
+    textContent: m.name + " <" + m.email + ">\nEmail address confirmed with a code. Reply to this email to answer.\n\n" + m.message });
+  const theirs = await deliver(env, "smtp/email", { sender, replyTo: { email: "leadwithfx@gmail.com", name: "Freddie Xavier" }, to: [{ email: m.email, name: m.name }], subject: "I got your message",
+    htmlContent: wrap('<h1 style="font-size:20px;color:#12294D;margin:8px 0 10px">Thanks ' + esc(m.name) + ', I got your message</h1><p style="margin:0 0 12px;font-size:15px;line-height:1.6;color:#4a5568">I&rsquo;ll reply as soon as I see it, but please allow up to 72 hours.</p><p style="margin:0;font-size:14px;line-height:1.6;color:#6b7280"><b>Your message</b><br>' + para(m.message) + "</p>"),
+    textContent: "Thanks " + m.name + ", I got your message.\nI'll reply as soon as I see it, but please allow up to 72 hours.\n\nYour message:\n" + m.message });
+  if (mine === "failed" || theirs === "failed") return json({ error: "send" }, 502, origin);
+  return json({ ok: true, ...(mine === "queued" || theirs === "queued" ? { queued: true } : {}) }, 200, origin);
+}
+
 export default {
   async fetch(request, env) {
     const origin = request.headers.get("Origin") || "";
@@ -290,6 +346,7 @@ export default {
       body = JSON.parse(raw);
     } catch { return json({ error: "json" }, 400, origin); }
     if (body && body.stage === "subscribe") return subscribe(env, body, ip, origin);
+    if (body && (body.stage === "msg_code" || body.stage === "msg_send")) return contact(env, body, ip, origin);
     const req = validateRequest(body);
     if (!req) return json({ error: "request" }, 400, origin);
     if (req.stage === "request") {
