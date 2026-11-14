@@ -1,3 +1,4 @@
+// Deployed from GitHub by Cloudflare Workers Builds.
 // Cloudflare Worker for the Clarity Report.
 // Receives answer numbers plus a first name and email. Step 1 ("result") emails the report to the visitor (so only a real address gets it) and a copy to the owner.
 // Step 2 ("request", only if the visitor ticks the box) alerts the owner and adds them to the pipeline.
