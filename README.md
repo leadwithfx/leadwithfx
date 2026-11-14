@@ -35,3 +35,9 @@ Remove any registrar parking page or forwarding. DNS can take minutes to a few h
 3. Run `node scripts/build-insights.mjs`, then commit the generated files. CI fails if the output is stale.
 
 The build creates the post page, the list and search box on `insights.html`, `insights/search-index.json` and the sitemap entry. Search runs in the browser; nothing about a visitor's search leaves the page.
+
+## Adding a testimonial
+
+1. Get the client's written permission to use their words, and agree how to describe them (for example "Engineering manager, fintech"). Leave out names and employers unless they agree.
+2. In `index.html`, replace the three placeholder cards in the `proof` section with real quotes, then remove the `hidden` attribute from that section.
+3. CI fails if the section is visible while any `[PLACEHOLDER]` or "coming soon" text remains.

@@ -41,6 +41,13 @@ for (const page of pages) {
 const BUDGET = { ".css": 60000, ".js": 25000, ".woff": 80000, ".woff2": 80000, ".avif": 120000, ".webp": 160000, ".jpg": 200000, ".png": 120000, ".svg": 20000 };
 const walkAssets = (d) => { for (const f of readdirSync(d)) { if (f.startsWith(".") || ["node_modules", "worker", "scripts"].includes(f)) continue; const p = join(d, f); if (statSync(p).isDirectory()) { walkAssets(p); continue; } const ext = f.slice(f.lastIndexOf(".")); const max = BUDGET[ext]; if (max && statSync(p).size > max) bad(p, "over size budget (" + statSync(p).size + " > " + max + " bytes)"); } };
 walkAssets(root);
+
+// Testimonials: the section may only be visible once every placeholder is replaced with a real quote.
+{
+  const home = readFileSync(join(root, "index.html"), "utf8").replace(/<!--[\s\S]*?-->/g, "");
+  const m = home.match(/<section class="proof"([^>]*)>([\s\S]*?)<\/section>/);
+  if (m && !/\bhidden\b/.test(m[1]) && /\[[A-Z][^\]]*\]|coming soon/i.test(m[2])) bad(join(root, "index.html"), "testimonials are visible but still contain placeholder text");
+}
 for (const f of ["sitemap.xml", "robots.txt", "CNAME"]) if (!existsSync(join(root, f))) { console.log("FAIL missing " + f); fails++; }
 console.log(pages.length + " pages checked");
 console.log(fails ? fails + " FAILED" : "ALL PASSED");
