@@ -14,5 +14,11 @@
   "ratelimits": [
     { "name": "LIMITER", "namespace_id": "1001", "simple": { "limit": 3, "period": 60 } }
   ],
+  // Retry outbox for failed Brevo calls (table defined in schema.sql). Rows exist only while a send is failing.
+  "d1_databases": [
+    { "binding": "DB", "database_name": "clarity-outbox", "database_id": "9a279783-e563-428f-bc46-f7bb20a1a263" }
+  ],
+  // Every 5 minutes: retry anything in the outbox that is due.
+  "triggers": { "crons": ["*/5 * * * *"] },
   "observability": { "enabled": true }
 }

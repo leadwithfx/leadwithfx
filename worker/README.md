@@ -27,7 +27,7 @@ Until you set `REPORT_ENDPOINT` in `quiz.html`, the form runs in **test mode** a
 6. **Switch it on.** Put the Worker URL in `quiz.html` as `REPORT_ENDPOINT`, commit, push. Send yourself a test report first.
 
 ## Checks
-- `node worker/test.mjs` runs 41 local tests (validation, scoring, escaping, consent paths, failure handling). They use a mocked network, so they do not prove the live Brevo or Anthropic calls: do the test report in step 6.
+- `node worker/test.mjs` runs 42 local checks (validation, scoring, escaping, tokens, consent paths, failure handling). They use a mocked network, so they do not prove the live Brevo calls: do the real test after going live.
 - If you change the quiz questions or options, update `QUESTIONS` in `worker/index.js` to match, and the `THEMES` question numbers if the order changes.
 - Follow-ups to pipeline contacts should be one to one, from you, with a line on how to stop hearing from you. Check final wording with your adviser.
 
@@ -51,3 +51,17 @@ The Worker deploys from this repo through Cloudflare Workers Builds. One-time se
 - Plain settings (`FROM_EMAIL`, `ALERT_EMAIL`, `BREVO_LIST_ID`, `DRY_RUN`) and the `LIMITER` rate limit are set in `wrangler.jsonc`. Change them in GitHub, not in the dashboard.
 - Secrets (`BREVO_API_KEY`, `TURNSTILE_SECRET`) stay in Cloudflare only.
 - To go live, delete the `DRY_RUN` line in `wrangler.jsonc` and push.
+
+## Reliable delivery (retry outbox)
+
+If Brevo is down or slow, a failed send is not lost. The Worker saves just that one call in a small D1 table (`outbox`, database `clarity-outbox`), and a cron trigger retries it every 5 minutes with exponential backoff (1 min, 2, 4, ... capped at 1 hour). After 8 attempts it is marked `dead` and kept for 7 days so it can be replayed by hand, then purged. A permanent error (a 4xx other than 429) is never queued.
+
+- Rows exist only while a send is failing and are deleted on success, so nothing is stored in normal operation.
+- Each email is queued on its own, so a retry never sends the other email twice.
+- Table definition: `schema.sql` (applied once). Binding and cron: `wrangler.jsonc`.
+- Watch it in Workers Logs: `send_failed`, `outbox_queued`, `outbox_sent`, `outbox_dead`, `outbox_run`.
+- Without the `DB` binding the Worker behaves as before (a failed send returns an error to the visitor).
+
+## Continuous integration
+
+`.github/workflows/ci.yml` runs on every push and pull request: Worker tests (including the outbox against a real SQL engine), site checks (`scripts/check-site.mjs`: links, metadata, alt text), accessibility (`scripts/a11y.mjs`, axe) and a Lighthouse budget (`lighthouserc.json`). To make them gates, turn on branch protection for `main` and require these four checks.
