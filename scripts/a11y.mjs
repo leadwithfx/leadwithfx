@@ -1,6 +1,7 @@
 // Serves the site locally and runs axe-core on each page. Fails on serious or critical issues.
 import { chromium } from "playwright";
-import AxeBuilder from "@axe-core/playwright";
+import * as axe from "@axe-core/playwright";
+const AxeBuilder = axe.AxeBuilder || (axe.default && axe.default.AxeBuilder) || axe.default;
 import { createServer } from "node:http";
 import { readFileSync, existsSync, statSync } from "node:fs";
 import { join, extname, resolve } from "node:path";
@@ -16,10 +17,11 @@ const server = createServer((req, res) => {
 }).listen(0);
 const base = "http://127.0.0.1:" + server.address().port;
 
+let fails = 0;
+try {
 const pages = ["/index.html", "/quiz.html", "/insights.html", "/privacy.html", "/terms.html"];
 process.on("unhandledRejection", (e) => { console.log("::error title=a11y crashed::" + String(e && e.stack || e).replace(/\n/g, " | ").slice(0, 900)); process.exit(1); });
 const browser = await chromium.launch();
-let fails = 0;
 for (const path of pages) {
   const page = await browser.newPage();
   // Third-party scripts (analytics, Turnstile) are not ours to audit and are not needed for the check.
@@ -35,4 +37,5 @@ for (const path of pages) {
 await browser.close();
 server.close();
 console.log(fails ? fails + " FAILED" : "ALL PASSED");
+} catch (e) { console.log("::error title=a11y crashed::" + String((e && e.stack) || e).replace(/\n/g, " | ").slice(0, 900)); process.exit(1); }
 process.exit(fails ? 1 : 0);
