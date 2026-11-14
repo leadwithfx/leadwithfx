@@ -164,11 +164,12 @@ form.addEventListener("submit",function(e){
 });
 back.addEventListener("click",function(){if(i>0){i--;render()}});
 var FIT=[
-{h:"A good fit: Leadership Coaching",p:"You're leading people or programs and want to grow into the next level of impact, influence and clarity.",l:"Leadership"},
-{h:"A good fit: Career Coaching",p:"You're working out a change, a first step or a path that feels right, and want a clear plan to get there.",l:"Career"},
-{h:"A good fit: Career Coaching",p:"You're building the foundations of your career, and a clear direction early makes every later move easier.",l:"Career"},
-{h:"Where to start",p:"Leadership Coaching and Career Coaching both work one to one. On the intro call we'll work out which suits you.",l:"Not sure yet"}
+{h:"Leadership Coaching may be the right fit",p:"You told me you're a tech leader or manager. Based on that and your answers, Leadership Coaching may be the right fit for you.",l:"Leadership"},
+{h:"Career Coaching may be the right fit",p:"You told me you're thinking about a career change. Based on that and your answers, Career Coaching may be the right fit for you.",l:"Career"},
+{h:"Career Coaching may be the right fit",p:"You told me you're early in your career. Based on that and your answers, Career Coaching may be the right fit for you.",l:"Career"},
+{h:"Where to start",p:"You told me none of the descriptions quite fit you, which is fine. Based on your answers, Leadership Coaching or Career Coaching may be the right fit for you.",l:"Not sure yet"}
 ];
+var CTA="Most people don't know exactly what they want yet, so the best next step is to book the intro call. That's where we can understand what would help you.";
 var HELP=[
 {h:"This is what coaching is",p:"You said talking it through is what helped you get unstuck. That's coaching: you set the agenda, I ask the questions, and you leave with your own answers and a clear next step."},
 {h:"What tends to help you",p:"You said hearing from someone who had done it is what helped. That makes sense, because lived experience is a powerful teacher. Coaching adds time and space to work out what fits you from everything you have heard. The intro call is a relaxed way to see whether that feels useful."},
@@ -184,7 +185,7 @@ function finish(){
   var s=ans.slice(3).reduce(function(a,b){return a+b},0),r=R[R.length-1];
   for(var k=0;k<R.length;k++){if(s<=R[k].max){r=R[k];break}}
   var f=FIT[(ans[0]||4)-1];
-  $("r-fit-h").textContent=f.h;$("r-fit-p").textContent=f.p+" "+EXP[(ans[1]||1)-1];
+  $("r-fit-h").textContent=f.h;$("r-fit-p").textContent=f.p+" "+EXP[(ans[1]||1)-1]+" "+CTA;
   var w=HELP[(ans[2]||4)-1];
   $("r-help-h").textContent=w.h;$("r-help-p").textContent=w.p;
   var url="https://calendly.com/freddie-rx?a1="+encodeURIComponent("Clarity Check: "+r.title+". Profile: "+Q[0].o[(ans[0]||4)-1]+". Coaching before: "+Q[1].o[(ans[1]||1)-1]+". What helped before: "+Q[2].o[(ans[2]||4)-1]+".");
