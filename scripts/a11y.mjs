@@ -27,6 +27,7 @@ for (const path of pages) {
   const { violations } = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze();
   const serious = violations.filter((v) => v.impact === "serious" || v.impact === "critical");
   console.log((serious.length ? "FAIL " : "PASS ") + path + (serious.length ? ": " + serious.map((v) => v.id + " (" + v.nodes.length + ")").join(", ") : ""));
+  for (const v of serious) console.log("::error title=axe " + path + " " + v.id + "::" + v.help + " | " + v.nodes.slice(0, 4).map((n) => n.target.join(" ") + " :: " + (n.any[0] || n.all[0] || n.none[0] || {}).message).join(" || "));
   if (serious.length) fails++;
   await page.close();
 }
