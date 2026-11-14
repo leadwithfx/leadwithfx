@@ -1,13 +1,13 @@
 // Cloudflare Worker for the Clarity Report.
-// Receives answer numbers plus a first name and email. Step 1 ("result") emails the full report to the owner and a confirmation to the visitor.
+// Receives answer numbers plus a first name and email. Step 1 ("result") emails the report to the visitor (so only a real address gets it) and a copy to the owner.
 // Step 2 ("request", only if the visitor ticks the box) alerts the owner and adds them to the pipeline.
-// Free-text never reaches the AI: only the answer numbers do.
+// The reflection is built from fixed wording chosen by the answers. No AI is used.
 //
 // Secrets and variables (Cloudflare > Worker > Settings):
-//   ANTHROPIC_API_KEY (secret)   BREVO_API_KEY (secret)
+//   BREVO_API_KEY (secret)
 //   FROM_EMAIL (a sender verified in Brevo, e.g. hello@leadwithfx.com)
 //   ALERT_EMAIL (where lead alerts go)   BREVO_LIST_ID (number, the pipeline list)
-//   Optional: MODEL, DRY_RUN=1 (builds the report but sends nothing)
+//   Optional: DRY_RUN=1 (builds the report but sends nothing)
 //   Abuse protection (each is optional and switches on when set):
 //     TURNSTILE_SECRET (secret)  Cloudflare Turnstile secret key: requires a human check token from the quiz page
 //     LIMITER (rate limit binding)  per-visitor limit, e.g. 3 requests per 60 seconds; see README
@@ -15,17 +15,6 @@
 const ALLOWED_ORIGINS = ["https://leadwithfx.com", "https://www.leadwithfx.com"];
 const BOOK_URL = "https://calendly.com/freddie-rx";
 const ASSESS_URL = "https://www.viacharacter.org/account/register";
-
-const SYSTEM = `You write a short, warm, plain-English reflection for someone who has just completed a five-question career "Clarity Check".
-You are given their answers as question and chosen option pairs. The first three items say who they are, whether they have worked with a coach before, and what has helped them get unstuck before.
-Rules:
-- 90 to 120 words, two short paragraphs, no headings, no bullet points, no emojis.
-- Paragraph 1: name what looks strong, then the main gap you can see, using only what their answers show.
-- Paragraph 2: end with one reflective question for them to think about.
-- Do not give instructions, advice, diagnoses, guarantees or predictions.
-- Do not mention coaching services, a coach, Freddie, prices or booking.
-- Do not invent facts about their job, employer or life beyond the answers.
-- Use "you". Plain language. Australian spelling.`;
 
 const QUESTIONS = [{"q":"Which best describes you?","o":["Tech leader or manager","Career changer","Early-career professional","Something else"],"profile":1},{"q":"Have you worked with a coach before?","o":["No, this would be my first time","Once or twice","Yes, several times"],"profile":1},{"q":"Think of a time you got unstuck on something important. What made the difference?","o":["I talked it through with someone and the answer became clear to me","Someone who had done it told me what worked for them","An expert gave me the answer or took it on","I haven't really got unstuck yet"],"profile":1},{"q":"How clear are you on your next role or move?","o":["I have no real idea","A few options, but nothing feels right","I have a direction, but I'm not sure it's the right one","I know exactly what I want next"]},{"q":"How well do the people who matter know the value you bring?","o":["Hardly at all","Some of them","Most of them, but not the key decision makers","Clearly, including the key decision makers"]},{"q":"Who holds you accountable for your growth?","o":["Nobody","I only check in with myself","Someone occasionally","Someone regularly, and it works"]},{"q":"How would you describe your momentum right now?","o":["Stuck","Slow and stop-start","Steady, but not going where I want","Moving, and building speed"]},{"q":"How confident are you influencing senior stakeholders?","o":["I avoid it","I do it, but it feels uncomfortable","Fairly confident in familiar situations","Confident, even in high-stakes rooms"]}];
 
@@ -101,21 +90,49 @@ export function analyse(nums) {
   const themes = THEMES.map((t) => {
     const vals = t.q.map((k) => nums[k + 2]);
     const frac = (vals.reduce((a, b) => a + b, 0) / vals.length - 1) / 3;
-    return { n: t.n, frac, label: frac < 0.34 ? "Early" : frac < 0.67 ? "Building" : "Strong", plan: t.plan };
+    return { n: t.n, lvl: Math.round(frac * 3) + 1, frac, label: frac < 0.34 ? "Early" : frac < 0.67 ? "Building" : "Strong", plan: t.plan };
   });
   let low = themes[0], high = themes[0];
   themes.forEach((t) => { if (t.frac < low.frac) low = t; if (t.frac > high.frac) high = t; });
   return { score, band, themes, low, high };
 }
 
-export function fallbackReflection(a) {
-  return "Your answers point to " + a.high.n.toLowerCase() + " as your strongest theme right now, and " + a.low.n.toLowerCase() +
-    " as the one with the most room to grow.\n\nA question to sit with: what would be different in 90 days if " + a.low.n.toLowerCase() + " moved up one level?";
+const SHOWS = {
+  Clarity: ["you don't yet have a clear picture of your next move", "you can see a few options, but none of them feels right yet", "you have a direction, though you're not sure it's the right one", "you know what you want next"],
+  Visibility: ["the people who matter hardly know the value you bring", "only some of the people who matter know the value you bring", "most people who matter know your value, but not the key decision makers", "the key decision makers clearly know the value you bring"],
+  Accountability: ["nobody is holding you accountable for your growth", "you mostly check in with yourself on your growth", "someone checks in with you on your growth now and then", "someone holds you accountable for your growth regularly, and it works"],
+  Momentum: ["you feel stuck right now", "your momentum is slow and stop-start", "your momentum is steady, though not heading where you want", "you are moving and building speed"],
+  Influence: ["you tend to avoid influencing senior stakeholders", "you do influence senior stakeholders, though it feels uncomfortable", "you are fairly confident influencing senior stakeholders in familiar situations", "you are confident influencing senior stakeholders, even in high-stakes rooms"],
+};
+const ASK = {
+  Clarity: "What would you want your next move to look like twelve months from now?",
+  Visibility: "Who most needs to know what you have achieved, and what would you want them to say about you?",
+  Accountability: "Who would you trust to ask you the hard questions about your growth?",
+  Momentum: "What is the one thing that, done every week, would restart your momentum?",
+  Influence: "What is the one point you want senior stakeholders to remember you for?",
+};
+const OPENER = ["As a tech leader or manager, ", "As someone changing careers, ", "As someone early in your career, ", ""];
+
+// Tailored wording chosen from fixed text by the answers: same answers, same reflection.
+export function reflect(a, nums) {
+  const op = OPENER[nums[0] - 1] || "";
+  const sh = (t) => SHOWS[t.n][t.lvl - 1];
+  let p1;
+  if (a.high.lvl === a.low.lvl) {
+    p1 = op + "your answers are fairly even across the five themes, so you have a free choice about where to start.";
+    p1 = p1.charAt(0).toUpperCase() + p1.slice(1);
+  } else {
+    p1 = op + "your answers show that " + sh(a.high) + ". The theme with the most room to grow is " + a.low.n.toLowerCase() + ": " + sh(a.low) + ".";
+    p1 = p1.charAt(0).toUpperCase() + p1.slice(1);
+  }
+  const q = a.high.lvl === a.low.lvl ? "Which of the five themes would make the biggest difference to you if it moved up one level?" : ASK[a.low.n];
+  return p1 + "\n\nA question to sit with: " + q;
 }
 
 const PROFILE = QUESTIONS[0].o, COACHED = QUESTIONS[1].o, HELPED = QUESTIONS[2].o;
 
-export function buildReport(name, nums, a, reflection, aiWritten) {
+export function buildReport(name, nums, a, owner = false) {
+  const reflection = reflect(a, nums);
   const first = esc(name);
   const bars = a.themes.map((t) =>
     '<tr><td style="padding:6px 0;font-size:14px;color:#12294D;width:120px">' + t.n + '</td>' +
@@ -127,58 +144,24 @@ export function buildReport(name, nums, a, reflection, aiWritten) {
   const btn = (href, label) => '<a href="' + href + '" style="display:inline-block;background:#C9A227;color:#12294D;font-weight:bold;font-size:14px;text-decoration:none;padding:12px 22px;border-radius:999px">' + label + "</a>";
   const html = '<div style="background:#FAF8F3;padding:24px 12px;font-family:Arial,Helvetica,sans-serif"><div style="max-width:560px;margin:0 auto;background:#ffffff;border-radius:12px;padding:28px 26px">' +
     '<div style="font-size:12px;letter-spacing:.12em;color:#C9A227;font-weight:bold">LEAD WITH FX</div>' +
-    '<h1 style="font-size:22px;color:#12294D;margin:8px 0 10px">Clarity Report for ' + first + "</h1>" +
+    '<h1 style="font-size:22px;color:#12294D;margin:8px 0 10px">' + (owner ? "Clarity Report for " : "Hi ") + first + (owner ? "" : ", here's your Clarity Report") + "</h1>" +
     '<p style="margin:0;font-size:15px;line-height:1.6;color:#4a5568"><b style="color:#12294D">' + a.band.title + ".</b> " + a.band.body + "</p>" +
     '<p style="margin:10px 0 0;font-size:14px;line-height:1.6;color:#4a5568"><b style="color:#12294D">Your next step.</b> ' + a.band.step + "</p>" +
     sec("Your five themes", '<table role="presentation" width="100%" cellspacing="0" cellpadding="0">' + bars + "</table>") +
-    sec("A closer look at your answers", reflHtml + (aiWritten ? '<p style="margin:6px 0 0;font-size:12px;color:#6b7280">Written by AI from your answers only. It is not from Freddie, and it is not advice.</p>' : "")) +
+    sec("A closer look at your answers", reflHtml) +
     sec("Your 90-day starter plan: " + a.low.n, plan) +
     sec("Using your strengths", '<p style="margin:0 0 10px;font-size:14px;line-height:1.6;color:#4a5568">Take this free strengths assessment (about 15 minutes). It is run by an independent organisation, not by me. When you have your top strengths, look for the one that could lift your lowest theme, ' + a.low.n.toLowerCase() + ", and bring them to our intro call.</p>" + btn(ASSESS_URL, "Take the assessment")) +
-    '<p style="margin:22px 0 0;font-size:12px;line-height:1.5;color:#6b7280">Prepared from the answers this person shared on leadwithfx.com, to go through together on the intro call. This is a reflection tool, not an assessment or a diagnosis.</p>' +
+    (owner ? "" : '<div style="margin-top:22px">' + btn(BOOK_URL, "Book a free intro call") + "</div>") +
+    '<p style="margin:22px 0 0;font-size:12px;line-height:1.5;color:#6b7280">' + (owner ? "Prepared from the answers this person shared on leadwithfx.com, to go through together on the intro call." : "You got this one-off email because you asked for your report on leadwithfx.com. Freddie Xavier, Lead with FX, leadwithfx@gmail.com") + ' This is a reflection tool, not an assessment or a diagnosis.</p>' +
     "</div></div>";
   const text = ["Clarity Report for " + name, "", a.band.title + ". " + a.band.body, "Your next step. " + a.band.step, "",
     "YOUR FIVE THEMES", ...a.themes.map((t) => t.n + ": " + t.label), "",
-    "A CLOSER LOOK AT YOUR ANSWERS", reflection + (aiWritten ? "\n(Written by AI from your answers only. It is not from Freddie, and it is not advice.)" : ""), "",
+    "A CLOSER LOOK AT YOUR ANSWERS", reflection, "",
     "YOUR 90-DAY STARTER PLAN: " + a.low.n.toUpperCase(), ...a.low.plan.map((p, i) => (i + 1) + ". " + p), "",
     "USING YOUR STRENGTHS", "Take this free strengths assessment (about 15 minutes), run by an independent organisation, not by me: " + ASSESS_URL, "",
-    "Prepared from the answers this person shared on leadwithfx.com, to go through together on the intro call."].join("\n");
-  return { subject: "Clarity Report for " + name, html, text };
-}
-
-export function buildConfirmation(name) {
-  const first = esc(name);
-  const p = (t) => '<p style="margin:0 0 12px;font-size:15px;line-height:1.6;color:#4a5568">' + t + "</p>";
-  const html = '<div style="background:#FAF8F3;padding:24px 12px;font-family:Arial,Helvetica,sans-serif"><div style="max-width:560px;margin:0 auto;background:#ffffff;border-radius:12px;padding:28px 26px">' +
-    '<div style="font-size:12px;letter-spacing:.12em;color:#C9A227;font-weight:bold">LEAD WITH FX</div>' +
-    '<h1 style="font-size:22px;color:#12294D;margin:8px 0 14px">Thanks, ' + first + "</h1>" +
-    p("I have your Clarity Check answers and I'm preparing your full Clarity Report.") +
-    p("The best next step is a free intro call. I'll share your report with you there, and we'll talk about what you're looking for and whether I can help.") +
-    '<div style="margin:18px 0"><a href="' + BOOK_URL + '" style="display:inline-block;background:#C9A227;color:#12294D;font-weight:bold;font-size:14px;text-decoration:none;padding:12px 22px;border-radius:999px">Book a free intro call</a></div>' +
-    '<p style="margin:22px 0 0;font-size:12px;line-height:1.5;color:#6b7280">You got this one-off email because you shared your Clarity Check answers on leadwithfx.com. Freddie Xavier, Lead with FX, leadwithfx@gmail.com</p>' +
-    "</div></div>";
-  const text = ["Thanks, " + name, "", "I have your Clarity Check answers and I'm preparing your full Clarity Report.", "",
-    "The best next step is a free intro call. I'll share your report with you there, and we'll talk about what you're looking for and whether I can help.", "",
-    "Book a free intro call: " + BOOK_URL, "",
-    "You got this one-off email because you shared your Clarity Check answers on leadwithfx.com. Freddie Xavier, Lead with FX, leadwithfx@gmail.com"].join("\n");
-  return { subject: "Thanks, " + name + ": let's book your intro call", html, text };
-}
-
-async function aiReflection(env, nums) {
-  if (!env.ANTHROPIC_API_KEY) return null;
-  const userText = nums.map((n, i) => (i === 0 ? "Who they are" : i === 1 ? "Coaching history" : i === 2 ? "What has helped them get unstuck" : "Q" + (i - 2)) + ": " + QUESTIONS[i].q + " -> " + QUESTIONS[i].o[n - 1]).join("\n");
-  const ctrl = new AbortController();
-  const t = setTimeout(() => ctrl.abort(), 12000);
-  try {
-    const r = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST", signal: ctrl.signal,
-      headers: { "content-type": "application/json", "x-api-key": env.ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01" },
-      body: JSON.stringify({ model: env.MODEL || "claude-haiku-5-5", max_tokens: 350, system: SYSTEM, messages: [{ role: "user", content: userText }] }),
-    });
-    if (!r.ok) return null;
-    const d = await r.json();
-    const text = ((d.content && d.content[0] && d.content[0].text) || "").trim();
-    return text.length > 20 && text.length < 1500 ? text : null;
-  } catch { return null; } finally { clearTimeout(t); }
+    ...(owner ? [] : ["Book a free intro call: " + BOOK_URL, ""]),
+    (owner ? "Prepared from the answers this person shared on leadwithfx.com, to go through together on the intro call." : "You got this one-off email because you asked for your report on leadwithfx.com. Freddie Xavier, Lead with FX, leadwithfx@gmail.com")].join("\n");
+  return { subject: owner ? "Clarity Report for " + name : "Your Clarity Report, " + name, html, text };
 }
 
 async function brevo(env, path, payload) {
@@ -269,19 +252,18 @@ export default {
       return json({ ok: true }, 200, origin);
     }
 
-    const ai = await aiReflection(env, req.nums);
-    const report = buildReport(req.name, req.nums, a, ai || fallbackReflection(a), !!ai);
-    const confirm = buildConfirmation(req.name);
+    const report = buildReport(req.name, req.nums, a);
+    const ownerCopy = buildReport(req.name, req.nums, a, true);
     const tok = await makeToken(env, req.email);
-    if (dry) return json({ ok: true, dry: true, subject: report.subject, html: report.html, text: report.text, confirmation: confirm.html, tok }, 200, origin);
+    if (dry) return json({ ok: true, dry: true, subject: report.subject, html: report.html, text: report.text, tok }, 200, origin);
 
     const mine = await brevo(env, "smtp/email", { sender, replyTo: { email: req.email, name: req.name }, to,
-      subject: "New lead: " + req.name + ", " + a.band.title, htmlContent: lead + report.html, textContent: rowsText + "\n\n" + report.text });
+      subject: "New lead: " + req.name + ", " + a.band.title, htmlContent: lead + ownerCopy.html, textContent: rowsText + "\n\n" + ownerCopy.text });
     if (!mine.ok) return json({ error: "send" }, 502, origin);
-    try {
-      await brevo(env, "smtp/email", { sender, replyTo: { email: "leadwithfx@gmail.com", name: "Freddie Xavier" },
-        to: [{ email: req.email, name: req.name }], subject: confirm.subject, htmlContent: confirm.html, textContent: confirm.text });
-    } catch { /* the lead already reached Freddie; the confirmation must not break the visitor's flow */ }
+    // The visitor only gets their report if the address is real.
+    const theirs = await brevo(env, "smtp/email", { sender, replyTo: { email: "leadwithfx@gmail.com", name: "Freddie Xavier" },
+      to: [{ email: req.email, name: req.name }], subject: report.subject, htmlContent: report.html, textContent: report.text });
+    if (!theirs.ok) return json({ error: "send" }, 502, origin);
     return json({ ok: true, tok }, 200, origin);
   },
 };
