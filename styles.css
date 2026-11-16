@@ -486,12 +486,12 @@ h1,h2,h3,.brand-name,.statement-text,.quote-head,.quote-after,.quiz legend,.meth
 :root[data-theme="dark"] .nav-toggle span{background:#EAEFF7}
 
 /* Theme switch (Auto / Light / Dark) */
-.theme-switch{display:inline-flex;gap:2px;padding:3px;border:1px solid var(--line);border-radius:999px;background:var(--card);flex:0 0 auto}
-.theme-switch button{width:30px;height:30px;border:0;border-radius:999px;background:transparent;color:var(--ink);cursor:pointer;display:grid;place-items:center;padding:0}
-.theme-switch button svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.theme-switch button[aria-pressed="true"]{background:var(--gold);color:#12294D}
+.theme-switch{display:inline-flex;flex:0 0 auto}
+.theme-switch button{width:36px;height:36px;border:1px solid var(--line);border-radius:999px;background:var(--card);color:var(--ink);cursor:pointer;display:grid;place-items:center;padding:0}
+.theme-switch button svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.theme-switch button:hover{border-color:var(--gold)}
 .theme-switch button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
-@media (max-width:480px){.theme-switch button{width:26px;height:26px}.theme-switch button svg{width:14px;height:14px}}
+@media (max-width:480px){.theme-switch button{width:34px;height:34px}}
 
 /* Logo: a gold ring with a thin light inner edge so the navy tile reads on light and dark */
 .logo-img{border-radius:12px;box-shadow:0 0 0 2px var(--gold),0 0 0 3px rgba(255,255,255,.35)}

@@ -54,16 +54,15 @@
    dark:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>'};
   var LABEL={auto:"Match my device",light:"Light theme",dark:"Dark theme"};
   function cur(){var t=root.getAttribute("data-theme");return t==="light"||t==="dark"?t:"auto"}
-  var box=document.createElement("div");box.className="theme-switch";box.setAttribute("role","group");box.setAttribute("aria-label","Colour theme");
-  ["auto","light","dark"].forEach(function(m){
-    var b=document.createElement("button");b.type="button";b.dataset.mode=m;b.innerHTML=ICON[m];b.title=LABEL[m];b.setAttribute("aria-label",LABEL[m]);
-    b.addEventListener("click",function(){
-      if(m==="auto")root.removeAttribute("data-theme");else root.setAttribute("data-theme",m);
-      try{if(m==="auto")localStorage.removeItem(KEY);else localStorage.setItem(KEY,m)}catch(e){}
-      paint();
-    });
-    box.appendChild(b);
+  var box=document.createElement("div");box.className="theme-switch";
+  var ORDER=["auto","light","dark"];
+  var btn=document.createElement("button");btn.type="button";box.appendChild(btn);
+  btn.addEventListener("click",function(){
+    var m=ORDER[(ORDER.indexOf(cur())+1)%3];
+    if(m==="auto")root.removeAttribute("data-theme");else root.setAttribute("data-theme",m);
+    try{if(m==="auto")localStorage.removeItem(KEY);else localStorage.setItem(KEY,m)}catch(e){}
+    paint();
   });
-  function paint(){var c=cur();box.querySelectorAll("button").forEach(function(b){b.setAttribute("aria-pressed",b.dataset.mode===c?"true":"false")})}
+  function paint(){var c=cur(),n=ORDER[(ORDER.indexOf(c)+1)%3];btn.innerHTML=ICON[c];btn.title=LABEL[c]+". Click for "+LABEL[n].toLowerCase()+".";btn.setAttribute("aria-label","Colour theme: "+LABEL[c]+". Activate to switch to "+LABEL[n].toLowerCase()+".")}
   paint();nav.appendChild(box);
 })();
