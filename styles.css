@@ -562,4 +562,4 @@ h1,h2,h3,.brand-name,.statement-text,.quote-head,.quote-after,.quiz legend,.meth
 .faq-body{padding-bottom:24px}.msgbox form,.msgbox #msg-done{margin-bottom:0}
 
 
-.footer-credit{display:inline-flex;align-items:center;gap:8px;min-height:24px;padding:4px 0;font-size:13px;color:#B7C2D6;opacity:.6;text-decoration:none;transition:opacity .2s}.footer-credit img{border-radius:5px;display:block}.footer-credit:hover,.footer-credit:focus-visible{opacity:1}
+.footer-credit{display:inline-flex;align-items:center;gap:8px;min-height:24px;padding:4px 0;font-size:13px;color:#A9B6CC;text-decoration:none;transition:color .2s}.footer-credit img{border-radius:5px;display:block}.footer-credit:hover,.footer-credit:focus-visible{color:#fff}
