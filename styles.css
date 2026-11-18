@@ -563,3 +563,6 @@ h1,h2,h3,.brand-name,.statement-text,.quote-head,.quote-after,.quiz legend,.meth
 
 
 .footer-credit{display:inline-flex;align-items:center;gap:8px;min-height:24px;padding:4px 0;font-size:13px;color:#A9B6CC;text-decoration:none;transition:color .2s}.footer-credit img{border-radius:5px;display:block}.footer-credit:hover,.footer-credit:focus-visible{color:#fff}
+/* Hero (desktop): keep the card clear of the bridge so both walls show, and keep the photo credit in view */
+@media (min-width:901px){.hero{background-position:12% 85%}}
+@media (min-width:1100px){.hero .wrap.hero-inner{max-width:none;margin:0;padding-left:clamp(24px,3vw,56px)}.hero .glass{max-width:340px;padding:32px 30px}.hero .glass h1{font-size:36px}.hero .glass .hero-sub{font-size:18px}}
