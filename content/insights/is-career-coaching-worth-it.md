@@ -37,4 +37,4 @@ Whoever you pick, ask:
 
 One conversation can bring clarity, but lasting change usually needs a few months. Four sessions spaced over four months is a common pattern, because it leaves time to try things between sessions.
 
-If you want to test the fit before spending anything, the two-minute [Clarity Check](../quiz.html) is free, and so is the 30-minute [intro call](../index.html#book).
+If you want to test the fit before spending anything, the two-minute [Clarity Check](../quiz.html) is free, and so is the short [intro call](../index.html#book).
