@@ -25,10 +25,10 @@ p{margin:0}
 /* Buttons */
 .btn{display:inline-block;text-decoration:none;font-weight:800;letter-spacing:.06em;font-size:15px;padding:18px 32px;border-radius:999px;text-align:center;transition:opacity .15s}
 .btn:hover{opacity:.9}
-.btn-sm{font-size:13px;padding:13px 22px}
+.btn-sm{font-size:15px;padding:13px 22px}
 .btn-gold{background:var(--gold);color:var(--navy)}
-.btn-navy{background:var(--navy);color:#fff;font-size:14px;padding:16px 24px;margin-top:auto}
-.btn-outline{border:2px solid var(--ink);color:var(--ink);font-size:14px;padding:14px 26px;align-self:flex-start}
+.btn-navy{background:var(--navy);color:#fff;font-size:15px;padding:16px 24px;margin-top:auto}
+.btn-outline{border:2px solid var(--ink);color:var(--ink);font-size:15px;padding:14px 26px;align-self:flex-start}
 .btn:focus-visible,a:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
 
 /* Labels */
@@ -311,7 +311,7 @@ p{margin:0}
   .navjs .nav-toggle{order:3;margin-right:-10px}
   .navjs .nav.open .nav-links{flex:0 0 100%;order:4;flex-direction:column;align-items:stretch;gap:0;padding:4px 0 12px;max-height:calc(100vh - 80px);overflow-y:auto;border-top:1px solid var(--line)}
   .navjs .nav.open .nav-links a:not(.btn){display:block;padding:16px 4px;font-size:15px;border-bottom:1px solid var(--line);background:none}
-  .navjs .nav.open .nav-links a.btn{display:block;text-align:center;margin-top:14px;padding:16px 22px;font-size:14px}
+  .navjs .nav.open .nav-links a.btn{display:block;text-align:center;margin-top:14px;padding:16px 22px;font-size:15px}
   .nav-links{gap:12px}
 }
 @media (max-width:900px){
@@ -319,7 +319,7 @@ p{margin:0}
   .navjs .nav.open .nav-inner{flex-wrap:wrap}
   .navjs .nav .nav-inner.wrap{padding-left:16px;padding-right:16px}
   .navjs .nav .brand{min-width:0;gap:10px}
-  .navjs .nav-links a.btn{padding:11px 16px;font-size:12px;white-space:nowrap}
+  .navjs .nav-links a.btn{padding:11px 16px;font-size:14px;white-space:nowrap}
   .navjs .nav-toggle{margin-right:-8px;flex:0 0 48px}
 }
 @media (max-width:360px){.navjs .brand-name{font-size:16px}}
@@ -356,10 +356,10 @@ html{scroll-padding-top:84px}
   .navjs .nav-toggle{display:flex;order:3;margin-right:-8px;flex:0 0 48px}
   .navjs .nav-links{order:2;gap:12px}
   .navjs .nav-links a:not(.btn){display:none}
-  .navjs .nav-links a.btn{padding:11px 16px;font-size:12px;white-space:nowrap}
+  .navjs .nav-links a.btn{padding:11px 16px;font-size:14px;white-space:nowrap}
   .navjs .nav.open .nav-links{flex:0 0 100%;order:4;flex-direction:column;flex-wrap:nowrap;align-items:stretch;gap:0;padding:4px 0 12px;max-height:calc(100vh - 80px);overflow-y:auto;border-top:1px solid var(--line)}
   .navjs .nav.open .nav-links a:not(.btn){display:block;padding:16px 4px;font-size:15px;letter-spacing:.08em;border-bottom:1px solid var(--line);background:none}
-  .navjs .nav.open .nav-links a.btn{display:block;text-align:center;margin-top:14px;padding:16px 22px;font-size:14px}
+  .navjs .nav.open .nav-links a.btn{display:block;text-align:center;margin-top:14px;padding:16px 22px;font-size:15px}
 }
 
 /* Home page notes and calls to action */
@@ -376,8 +376,8 @@ html{scroll-padding-top:84px}
 /* Tone: sentence case, lighter headings, warmer sections */
 h1,h2,h3{font-weight:400}
 .nav-links{font-size:15px;font-weight:700;letter-spacing:.01em;text-transform:none;gap:24px}
-.nav-links a.btn,.btn-sm{letter-spacing:.01em;font-size:14px}
-.btn{letter-spacing:.01em;font-weight:700;font-size:16px}
+.nav-links a.btn,.btn-sm{letter-spacing:.01em;font-size:15px}
+.btn{letter-spacing:.01em;font-weight:700;font-size:15px}
 .label,.eyebrow{text-transform:none;letter-spacing:.02em;font-size:15px;font-weight:700}
 .includes{text-transform:none;letter-spacing:.02em;font-size:15px}
 .diff .section-title{text-align:left}
@@ -537,8 +537,8 @@ h1,h2,h3,.brand-name,.statement-text,.quote-head,.quote-after,.quiz legend,.meth
   .navjs .nav.open .theme-switch{order:5;margin-right:auto}
   .navjs .nav.open .nav-links{order:6}
 }
-.step-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:6px}.step-actions .btn-outline{align-self:auto;padding:11px 20px;font-size:13px}
-.step-actions .btn{padding:13px 22px;font-size:13px;border:2px solid var(--gold)}.step-actions .btn-outline{border-color:var(--ink)}
+.step-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:6px}.step-actions .btn-outline{align-self:auto;padding:11px 20px;font-size:15px}
+.step-actions .btn{padding:13px 22px;font-size:15px;border:2px solid var(--gold)}.step-actions .btn-outline{border-color:var(--ink)}
 .footer-social{display:inline-flex;align-items:center}.footer-social svg{display:block}
 .faq-list details[id]{scroll-margin-top:120px}
 .msgbox{margin-top:16px}
